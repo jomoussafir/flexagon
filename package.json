@@ -1,7 +1,7 @@
 {
   "name": "le-probleme-du-jour",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Shared repository for the WordPress website, iPhone app and future Android app.",
   "engines": {
@@ -9,6 +9,20 @@
   },
   "scripts": {
     "test:latex": "node --test shared/latex/tests/*.test.mjs",
-    "brand:sync": "python3 tools/sync_branding.py"
+    "brand:sync": "python3 tools/sync_branding.py",
+    "build:web": "node tools/build-web.mjs",
+    "start": "npm run build:web && node_modules/node/bin/node tools/start-web.mjs",
+    "dev": "npm start",
+    "test:web": "node_modules/node/bin/node tests/wordpress.test.mjs",
+    "package:web": "python3 tools/package-web.py"
+  },
+  "devDependencies": {
+    "@wp-playground/cli": "^3.1.57",
+    "esbuild": "^0.28.2",
+    "katex": "^0.19.0",
+    "node": "^24.18.0"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   }
 }

@@ -1,58 +1,71 @@
 # Le Problème du Jour
 
-![Le Problème du Jour](shared/branding/logo.png)
+One repository for the community edition: a WordPress website for OVH, the iPhone
+reader foundation and a future Android client. The original app logo is shared.
 
-One repository for the new community edition: a WordPress website hosted at OVH,
-a native iPhone app, and a future Android app sharing the same accounts and problems.
+## Launch the website
 
-## Project status
+Double-click **Open Website.command**, or run:
 
-This is the project foundation. The existing iPhone reader and the existing LaTeX
-figure renderer have been copied into this repository. The original project remains
-separate. WordPress accounts, submissions, review, email confirmation and authenticated
-mobile access still need implementation; no OVH deployment or GitHub repository has
-been created by this setup.
+```sh
+npm ci
+npm start
+```
 
-The new iPhone bundle identifier is `com.leproblemedujour.community` so it can coexist
-with the original app. Its visible catalogue starts empty and its server address is
-unset. Historical offline reader fixtures are retained for regression tests; they are
-not the new published catalogue or the full editorial database.
+Open **http://127.0.0.1:9400/**. Administrator credentials are in **Local access.txt**,
+created on launch and excluded from Git. Your database persists in `.local/wordpress`.
+See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
+
+## Implemented website
+
+- WordPress email/password accounts, pseudonyms, email confirmation, password reset.
+- Member-only catalogue; private drafts, submissions and admin review.
+- French and English versions, independent approval and publication.
+- LaTeX editor/import, live preview, protected SVG/PNG/JPEG figures with
+  `\includegraphics`, captions and local `\label` / `\ref` numbering.
+- Categories, difficulty 1–5, sources, keywords, filters and FR/EN validation sorting.
+- Per-member progression: unseen, bookmarked, attempted and solved.
+- Version history; editing a published problem leaves its approved snapshot online.
+- Profile images, opt-in new-publication email and account deletion.
+- A local WordPress runtime, private test mailbox, deployment ZIP packages and tests.
+
+The catalogue starts empty. The previous app/site and their database are separate.
+OVH deployment, production mail configuration, import of the old collection and
+native app authentication/integration remain separate next steps. There is no
+GitHub remote yet.
 
 ## Layout
 
 | Folder | Purpose |
 | --- | --- |
-| [ios](ios/README.md) | Existing SwiftUI reader and Xcode project, isolated for the new edition |
-| [wordpress](wordpress/README.md) | Custom plugin and theme development for OVH; folders prepared |
-| [android](android/README.md) | Reserved for the future Android client |
-| [shared/branding](shared/branding/README.md) | Original PNG logo, SVG source and browser favicon |
-| [shared/latex](shared/latex/README.md) | Reused rendering of mathematics, figures and references |
-| [shared/api](shared/api/README.md) | Planned shared website/mobile data contract |
-| [tools](tools/README.md) | Branding sync and future migration utilities |
-| [docs](docs/specification.md) | Agreed requirements, hosting and migration notes |
+| `wordpress/plugins/le-probleme-du-jour` | Accounts, permissions, problem workflow, protected assets and REST API |
+| `wordpress/themes/le-probleme-du-jour` | Responsive community website |
+| `ios` | Copied SwiftUI reader, not yet connected to the member-only WordPress API |
+| `android` | Reserved for a future Android app |
+| `shared/branding` | Original logo and favicon |
+| `shared/latex` | LaTeX/figure renderer and its regression tests |
+| `tools` | Local launcher, asset build, branding sync and deployment packaging |
+| `tests` | Isolated real-WordPress integration suite |
+| `docs` | Requirements, verification, hosting and migration notes |
 
-## Open the iPhone app
+## Development
 
-Open `ios/ProblemOfTheDay.xcodeproj`, choose the `ProblemOfTheDay` scheme and an iPhone
-simulator, then Run. The new WordPress service will be connected during implementation.
-
-## Verify the shared renderer
-
-Use Node.js 22.18+ or 24+. KaTeX is included with its MIT license; no install is required.
+Node.js 22.18+ can install/build the project. `npm start` and `npm run test:web` use
+the project-local Node 24.18 runtime required by WordPress Playground. No system PHP,
+Docker or MySQL install is needed for the local preview. Production runs on standard
+WordPress/PHP and MySQL at OVH; Playground is only a development dependency.
 
 ```sh
+npm run build:web
 npm run test:latex
+npm run test:web
 python3 tools/sync_branding.py --check
+npm run package:web
 ```
 
-## Content and deployment
+`npm run test:web` creates a disposable database on port 9401. It never uses the
+preview database on port 9400. The local server binds only to 127.0.0.1.
 
-WordPress core, live accounts, passwords, uploaded figures, private reference PDFs,
-database exports and hosting credentials do not belong in this code repository.
-The complete editorial collection will be copied separately, using the live review
-data rather than only the public iPhone catalogue. See [migration](docs/migration.md).
-
-Use a private GitHub repository when the owner account is chosen. This folder contains
-one local Git repository and has no remote configured yet.
-
-Setup checks are recorded in [verification](docs/verification.md).
+Do not commit `.local`, credentials, database exports, private reference books,
+uploaded content or WordPress core. The website packages contain only the custom
+plugin and theme. The logo synchronization check covers both WordPress and iOS.

@@ -12,8 +12,10 @@ The caller must supply a trusted mapping of uploaded figure filenames to approve
 image URLs or embedded data. Never pass user-supplied arbitrary URLs as trusted files.
 SVG uploads will need validation before being stored and served.
 
-This source is not yet connected to WordPress. Browser packaging, protected uploads
-and server-side publication validation remain implementation work. The iPhone reader
-already supports HTML statements and included figures.
+This source is bundled into the WordPress theme. The plugin serves protected uploads
+and validates publication permissions, figure names and label references. KaTeX has
+been updated to 0.19.0 with matched fonts to resolve the prior trust-guard advisory.
+The iPhone reader already supports HTML statements and included figures, but its
+new authenticated WordPress integration is still pending.
 
 Run `npm run test:latex` from the repository root.

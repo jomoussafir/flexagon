@@ -39,5 +39,6 @@ exterior, source grouping/order, five mathematical categories and progress choic
 
 ## Status
 
-Only the repository foundation is prepared. These requirements describe forthcoming
-implementation, not features already provided by this scaffold.
+The WordPress website implements the accounts, submission, review and publication
+workflow locally. OVH deployment and real email delivery, the historic database import,
+and native mobile authentication/API integration remain pending. See verification.md.

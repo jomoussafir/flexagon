@@ -39,3 +39,9 @@ wordpress/wp-admin/
 wordpress/wp-includes/
 wordpress/wp-content/uploads/
 wordpress/wp-content/cache/
+
+.local/
+wordpress/themes/le-probleme-du-jour/assets/app.js
+wordpress/themes/le-probleme-du-jour/assets/app.css
+wordpress/themes/le-probleme-du-jour/assets/katex/
+Local access.txt

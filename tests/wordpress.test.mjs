@@ -1,0 +1,89 @@
+import assert from 'node:assert/strict';
+import { runCLI } from '@wp-playground/cli';
+import { Server } from 'node:net';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const listen=Server.prototype.listen;
+Server.prototype.listen=function(...args){if(typeof args[0]==='number')return listen.call(this,{port:args[0],host:'127.0.0.1'},args.find(a=>typeof a==='function'));return listen.apply(this,args);};
+const password='Test-only-password-938!';
+const server=await runCLI({command:'server',port:9401,wp:'7.1.3',php:'8.3',workers:6,login:false,internalCookieStore:false,
+    'mount-before-install':[{hostPath:path.join(root,'wordpress/plugins/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/plugins/le-probleme-du-jour'}, {hostPath:path.join(root,'wordpress/themes/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/themes/le-probleme-du-jour'}],
+    blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,DISABLE_WP_CRON:true},steps:[{step:'runPHP',code:`<?php
+        require '/wordpress/wp-load.php'; require_once ABSPATH.'wp-admin/includes/plugin.php';
+        activate_plugin('le-probleme-du-jour/le-probleme-du-jour.php');switch_theme('le-probleme-du-jour');
+        wp_update_user(['ID'=>1,'user_email'=>'admin@example.test','user_pass'=>'${password}']);
+        update_option('permalink_structure','/%postname%/');flush_rewrite_rules();
+    `}]}});
+const base=server.serverUrl;
+let passed=0;
+async function check(name,fn){await fn();passed++;console.log('PASS '+name);}
+class Client {
+    cookies=new Map();session=null;
+    async request(route,data,method='GET',extra={}) {
+        const headers={Origin:base,...extra};
+        if(this.session){headers['X-WP-Nonce']=this.session.nonce;headers['X-LPDJ-Form']=this.session.formNonce;}
+        headers.Cookie=[...this.cookies].map(([k,v])=>k+'='+v).join('; ');
+        if(data && !(data instanceof FormData))headers['Content-Type']='application/json';
+        const url=route.startsWith('http')?route:base+'/wp-json/lpdj/v1/'+route;
+        const response=await fetch(url,{method,headers,body:data?(data instanceof FormData?data:JSON.stringify(data)):undefined});
+        for(const cookie of response.headers.getSetCookie()){const pair=cookie.split(';')[0];const n=pair.indexOf('=');this.cookies.set(pair.slice(0,n),pair.slice(n+1));}
+        const text=await response.text();let result;try{result=JSON.parse(text);}catch{result=text;}
+        return {status:response.status,data:result,headers:response.headers};
+    }
+    async get(route){const result=await this.request(route);assert.equal(result.status,200,JSON.stringify(result.data));return result.data;}
+    async post(route,data){const result=await this.request(route,data,'POST');assert.equal(result.status,200,JSON.stringify(result.data));return result.data;}
+    async boot(){this.session=await this.get('session');return this;}
+    async login(email){this.session=await this.post('auth/login',{email,password});}
+}
+try {
+    const anon=await new Client().boot(),admin=await new Client().boot(),author=await new Client().boot(),reader=await new Client().boot();
+    await check('Public homepage serves the original logo and theme',async()=>{const response=await fetch(base);assert.equal(response.status,200);const html=await response.text();assert.match(html,/assets\/app.js/);assert.match(html,/assets\/logo.png/);});
+    await check('Anonymous visitors cannot read problems',async()=>assert.equal((await anon.request('problems')).status,401));
+    await check('Login forms reject cross-origin submissions',async()=>assert.equal((await anon.request('auth/login',{email:'x',password},'POST',{Origin:'https://attacker.example'})).status,403));
+    await check('Administrator login uses WordPress cookies',async()=>{await admin.login('admin@example.test');assert.equal(admin.session.user.admin,true);assert.equal((await admin.get('session')).user.admin,true);});
+    await check('Fresh database has no published problems',async()=>assert.equal((await admin.get('problems')).total,0));
+    async function register(client,email,pseudo){await client.post('auth/register',{email,pseudo,password,accept:true,notifications:true});const mail=await admin.get('mailbox');const msg=mail.find(m=>String(m.to)===email);assert.ok(msg);const token=msg.message.match(/user=(\d+)&token=([a-f0-9]+)/);assert.ok(token);return {user:token[1],token:token[2]};}
+    let authorToken;
+    await check('Registration captures a confirmation email locally',async()=>{authorToken=await register(author,'author@example.test','Auteur test');});
+    await check('Unverified users cannot sign in',async()=>assert.equal((await author.request('auth/login',{email:'author@example.test',password},'POST')).status,401));
+    await check('Confirmation is single-use, followed by member login',async()=>{await author.post('auth/verify',authorToken);assert.equal((await author.request('auth/verify',authorToken,'POST')).status,400);await author.login('author@example.test');assert.equal(author.session.user.admin,false);});
+    const readerToken=await register(reader,'reader@example.test','Lecteur test');await reader.post('auth/verify',readerToken);await reader.login('reader@example.test');
+    await check('Members cannot open admin review or mailbox',async()=>{assert.equal((await author.request('problems?scope=review')).status,403);assert.equal((await author.request('mailbox')).status,404);});
+    let draft=await author.post('problems',{});
+    draft.versions.fr={title:'Le triangle et le prix',latex:'Un prix de \\$ 100. Trouver $x$ tel que $x^2=4$.',approved:true};
+    draft.versions.en={title:'The triangle and the price',latex:'A price of \\$ 100. Find $x$ with $x^2=4$.',approved:true};
+    draft.category='Geometry';draft.difficulty=3;draft.keywords=['triangle','entiers'];draft.source='Communauté';
+    await check('LaTeX backslashes survive save and member approval cannot be forged',async()=>{draft=await author.post('problems/'+draft.id,{...draft,action:'save'});assert.match(draft.versions.fr.latex,/\\\$/);assert.equal(draft.versions.fr.approved,false);});
+    await check('Drafts are private even to another signed-in member',async()=>{assert.equal((await reader.request('problems/'+draft.id+'?context=edit')).status,403);assert.equal((await reader.request('problems/'+draft.id)).status,404);assert.equal((await reader.get('problems')).total,0);});
+    await check('A member cannot publish directly',async()=>assert.equal((await author.request('problems/'+draft.id,{...draft,action:'publish'},'POST')).status,403));
+    await check('Stale saves cannot overwrite newer drafts',async()=>assert.equal((await author.request('problems/'+draft.id,{...draft,revision:1,action:'save'},'POST')).status,409));
+    async function upload(client,name,contents,mime='image/svg+xml',id=draft.id){const form=new FormData();form.append('problem',String(id));form.append('revision',String(draft.revision));form.append('file',new Blob([contents],{type:mime}),name);return client.request('assets',form,'POST');}
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><path d="M 10 140 L 100 10 L 190 140 Z" fill="none" stroke="black" stroke-width="3"/></svg>';
+    let figure;
+    await check('Safe vector figure upload succeeds',async()=>{const result=await upload(author,'triangle.svg',svg);assert.equal(result.status,200,JSON.stringify(result.data));figure=result.data;draft.revision=figure.revision;});
+    await check('Draft figures cannot be downloaded by other members or guests',async()=>{assert.equal((await reader.request(figure.asset.url)).status,403);assert.equal((await anon.request(figure.asset.url)).status,401);assert.equal((await author.request(figure.asset.url)).status,200);});
+    await check('SVG scripts and external resources are rejected',async()=>{assert.equal((await upload(author,'bad.svg','<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')).status,400);assert.equal((await upload(author,'external.svg','<svg xmlns="http://www.w3.org/2000/svg"><use href="https://evil.example/x"/></svg>')).status,400);});
+    draft=await author.get('problems/'+draft.id+'?context=edit');
+    draft.versions.fr.latex+='\n\nVoir la figure~\\ref{fig:triangle}.\n\n\\begin{figure}\n\\includegraphics[width=0.7\\linewidth]{triangle.svg}\n\\caption{Un triangle}\n\\label{fig:triangle}\n\\end{figure}';
+    await check('Submission enters the administrator review queue',async()=>{draft=await author.post('problems/'+draft.id,{...draft,action:'submit'});assert.equal(draft.state,'submitted');assert.equal((await admin.get('problems?scope=review')).items[0].state,'submitted');});
+    await check('Admin must approve a language before publication',async()=>assert.equal((await admin.request('problems/'+draft.id,{...draft,action:'publish'},'POST')).status,400));
+    await check('First Save & Publish preserves the selected FR verification',async()=>{draft.versions.fr.approved=true;draft=await admin.post('problems/'+draft.id,{...draft,action:'publish'});assert.equal(draft.versions.fr.approved,true);assert.equal(draft.hasPublished,true);});
+    let publicProblem;
+    await check('Only the approved language reaches readers',async()=>{publicProblem=await reader.get('problems/'+draft.id);assert.deepEqual(Object.keys(publicProblem.versions),['fr']);assert.ok(!('reviewNote' in publicProblem));assert.equal((await reader.get('problems')).sources['Communauté'],1);});
+    await check('Published figures are readable only by authenticated members',async()=>{assert.equal((await reader.request(figure.asset.url)).status,200);assert.equal((await anon.request(figure.asset.url)).status,401);});
+    await check('Publishing EN enables both language versions',async()=>{draft.versions.en.approved=true;draft=await admin.post('problems/'+draft.id,{...draft,action:'publish'});assert.deepEqual(Object.keys((await reader.get('problems/'+draft.id)).versions),['fr','en']);});
+    await check('Editing a published problem does not replace its approved snapshot',async()=>{draft.versions.fr.latex='Nouvel énoncé non validé.';draft=await author.post('problems/'+draft.id,{...draft,action:'save'});assert.equal(draft.versions.fr.approved,false);assert.match((await reader.get('problems/'+draft.id)).versions.fr.latex,/triangle/);});
+    await check('Progress is personal and persisted',async()=>{await reader.post('problems/'+draft.id+'/progress',{progress:'solved'});assert.equal((await reader.get('problems/'+draft.id)).progress,'solved');assert.equal((await author.get('problems/'+draft.id)).progress,'unseen');});
+    await check('Revisions preserve the previous LaTeX text',async()=>{const history=await author.get('problems/'+draft.id+'/history');assert.ok(history.length>=5);assert.ok(history.some(h=>h.snapshot.versions.fr.latex.includes('\\includegraphics')));assert.equal((await reader.request('problems/'+draft.id+'/history')).status,403);});
+    await check('A substantial edit can be returned with a review note',async()=>{draft.reviewNote='Merci de justifier cette égalité.';draft=await admin.post('problems/'+draft.id,{...draft,action:'return'});assert.equal(draft.state,'returned');assert.match((await author.get('problems/'+draft.id+'?context=edit')).reviewNote,/justifier/);});
+    await check('Profile drawings and notification preferences can be saved',async()=>{const result=await upload(reader,'portrait.svg',svg,'image/svg+xml',0);assert.equal(result.status,200);const profile=await reader.post('profile',{pseudo:'Lecteur modifié',notifications:false,avatar:result.data.asset.id});assert.equal(profile.notifications,false);assert.equal(profile.pseudo,'Lecteur modifié');assert.ok(profile.avatar);});
+    await check('Notification delivery respects opt-out and hides recipients',async()=>{const result=await server.playground.run({code:`<?php require '/wordpress/wp-load.php'; do_action('lpdj_notify_published', ${draft.id}); echo 'ok';`});assert.equal(result.exitCode,0);const mails=await admin.get('mailbox');const published=mails.filter(m=>m.subject.startsWith('Nouveau problème'));assert.equal(published.length,1);assert.equal(published[0].to,'author@example.test');});
+    await check('Password-reset links work and invalidate previous sessions',async()=>{const resetClient=await new Client().boot();await resetClient.post('auth/forgot',{email:'reader@example.test'});const mail=(await admin.get('mailbox')).find(m=>m.subject.startsWith('Réinitialiser'));const url=new URL(mail.message.match(/http[^\s]+/)[0]);const params=new URLSearchParams(url.hash.split('?')[1]);await resetClient.post('auth/reset',{...Object.fromEntries(params),password:'Changed-test-password-38!'});const old=await reader.request('profile',{pseudo:'Wrong',notifications:false},'POST');assert.ok([401,403].includes(old.status));});
+    await check('Unpublication removes both problem and protected figures from readers',async()=>{draft=await admin.post('problems/'+draft.id,{...draft,action:'unpublish'});assert.equal((await author.get('problems')).total,0);const another=await new Client().boot();const tok=await register(another,'other@example.test','Autre');await another.post('auth/verify',tok);await another.login('other@example.test');assert.equal((await another.request('problems/'+draft.id)).status,404);assert.equal((await another.request(figure.asset.url)).status,403);});
+    await check('Account deletion removes drafts and invalidates login',async()=>{const result=await author.request('account',{password},'DELETE');assert.equal(result.status,200);assert.equal((await admin.get('problems?scope=review')).total,0);const client=await new Client().boot();assert.equal((await client.request('auth/login',{email:'author@example.test',password},'POST')).status,401);});
+    await check('Draft deletion is restricted to its author or an administrator',async()=>{const draft=await admin.post('problems',{});const member=await new Client().boot();await member.login('other@example.test');assert.equal((await member.request('problems/'+draft.id,{},'DELETE')).status,403);assert.equal((await admin.request('problems/'+draft.id,{},'DELETE')).status,200);});
+    await check('Deleting a contributor preserves published LaTeX and an editable bilingual draft',async()=>{const member=await new Client().boot();await member.login('other@example.test');let p=await member.post('problems',{});p.versions.fr={title:'Texte conservé',latex:'Calculer $\\frac{1}{2}$.',approved:true};p=await admin.post('problems/'+p.id,{...p,action:'publish'});assert.equal((await member.request('account',{password},'DELETE')).status,200);const pub=await admin.get('problems/'+p.id);assert.equal(pub.author,'Compte supprimé');assert.equal(pub.versions.fr.latex,'Calculer $\\frac{1}{2}$.');const draft=await admin.get('problems/'+p.id+'?context=edit');assert.ok(draft.versions.en);assert.equal(draft.versions.en.approved,false);});
+    await check('REST writes require the WordPress CSRF nonce',async()=>{const response=await fetch(base+'/wp-json/lpdj/v1/problems',{method:'POST',headers:{Cookie:[...admin.cookies].map(([k,v])=>k+'='+v).join('; '),'Content-Type':'application/json'},body:'{}'});assert.equal(response.status,401);});
+    console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
+} finally {await server[Symbol.asyncDispose]();}
