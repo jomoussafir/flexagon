@@ -1,6 +1,6 @@
 import { runCLI } from '@wp-playground/cli';
 import { Server } from 'node:net';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -25,7 +25,10 @@ await writeFile(path.join(root,'Local access.txt'),`LOCAL PREVIEW ONLY — LE PR
 const listen=Server.prototype.listen;
 Server.prototype.listen=function(...args){if(typeof args[0]==='number'){const callback=args.find(a=>typeof a==='function');return listen.call(this,{port:args[0],host:'127.0.0.1'},callback);}return listen.apply(this,args);};
 const phpString=s=>"'"+s.replaceAll('\\','\\\\').replaceAll("'","\\'")+"'";
+let existingWordPress=false;
+try { await access(path.join(state,'wordpress/wp-load.php')); existingWordPress=true; } catch {}
 const server=await runCLI({command:'server',port,wp:'7.1.3',php:'8.3',login:false,workers:6,
+    wordpressInstallMode:existingWordPress?'install-from-existing-files-if-needed':'download-and-install',
     'site-url':`http://127.0.0.1:${port}`,
     'mount-before-install':[{hostPath:path.join(state,'wordpress'),vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/plugins/le-probleme-du-jour'},{hostPath:path.join(root,'wordpress/themes/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/themes/le-probleme-du-jour'}],
     blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,DISABLE_WP_CRON:false},steps:[{step:'runPHP',code:`<?php
