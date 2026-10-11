@@ -1,0 +1,14 @@
+{
+  "description": "Existing Poincar\u00e9 disk / Klein quartic icon, white exterior; copied without alteration.",
+  "files": {
+    "logo.png": {
+      "sha256": "ca17b302e8524f5846a1273bf95fa0bd711aeb4d4917cbf97a2a38c9a254fa0d"
+    },
+    "logo.svg": {
+      "sha256": "8ac2c2a60552d810efd6b4be9d51ee2e390c6603642278f2749c9bc7ab07b0c8"
+    },
+    "favicon.png": {
+      "sha256": "69823af4276e3f1c4f826c82c65ac4070e3ca1f36a4dd73f198f488f57d0a24a"
+    }
+  }
+}

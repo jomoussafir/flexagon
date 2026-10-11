@@ -1,0 +1,776 @@
+[
+  {
+    "id": "algebra-1-10",
+    "title": "A birthday in the eighteenth century",
+    "language": "en",
+    "topic": "algebra",
+    "difficulty": 2,
+    "searchText": "A birthday in the eighteenth century A man born in the eighteenth century was $x$ years old in the year $x^2$. How old was he in $1776$? (Make no correction for calendar changes.)\n Challenging Problems In Algebra",
+    "editorialNote": "Main numbered problem transcribed. Separately labelled Challenge 1 and Challenge 2 not included in this pilot.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Algebra",
+        "number": "1-10",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "algebra-1-7",
+    "title": "A train and a tunnel",
+    "language": "en",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "A train and a tunnel A freight train one mile long is traveling at a steady speed of $20$ miles per hour. It enters a tunnel one mile long at $1$ P.M. At what time does the rear of the train emerge from the tunnel?\n Challenging Problems In Algebra",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Algebra",
+        "number": "1-7",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "algebra-1-9",
+    "title": "The final three digits of a square",
+    "language": "en",
+    "topic": "number_theory",
+    "difficulty": 2,
+    "searchText": "The final three digits of a square The last three digits of a number $N$ are $x25$. For how many values of $x$ can $N$ be the square of an integer?\n Challenging Problems In Algebra",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Algebra",
+        "number": "1-9",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-01",
+    "title": "Une fraction irréductible",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "Une fraction irréductible Calculer\n\\[\\frac{1\\times2\\times4+2\\times4\\times8+3\\times6\\times12+4\\times8\\times16}{1\\times3\\times9+2\\times6\\times18+3\\times9\\times27+4\\times12\\times36}.\\]\nSeule une réponse numérique est attendue ici. La réponse doit être donnée sous la forme d'une fraction irréductible (c'est-à-dire sous la forme $\\frac ab$ avec $a$ et $b$ deux entiers n'ayant aucun diviseur commun).\n Coupe Animath - Automne 2022",
+    "editorialNote": "Source wording retained, including 'aucun diviseur commun'; mathematically this means no common divisor greater than 1.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "1",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-02",
+    "title": "Angles dans un triangle isocèle",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 2,
+    "searchText": "Angles dans un triangle isocèle Soit $ABC$ un triangle isocèle en $A$ tel que $AB<BC$. Soit $P$ le point de la droite $(BC)$ situé en dehors du segment $[BC]$ tel que $BP=BA$. Soit $Q$ le point de $(AP)$ différent de $A$ tel que $CQ=CA$. Si $\\widehat{QPC}=x$, déterminer la mesure de l'angle $\\widehat{PCQ}$ en fonction de $x$.\n Coupe Animath - Automne 2022 Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "2",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "9",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-03",
+    "title": "Cinq entiers au tableau",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 2,
+    "searchText": "Cinq entiers au tableau Au tableau, Aline a écrit cinq entiers distincts qui vérifient la propriété suivante : quel que soit le choix de trois entiers distincts parmi ceux qui sont écrits, le produit des trois nombres choisis est divisible par $10$. Montrer que l'un des cinq entiers écrits au tableau est divisible par $10$.\n Coupe Animath - Automne 2022 Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "3",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "10",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-04",
+    "title": "Deux milieux dans un rectangle",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Deux milieux dans un rectangle Soit $ABCD$ un rectangle. Soient $M$ le milieu du segment $[BC]$ et $N$ le milieu du segment $[CD]$. Soit $P$ le point d'intersection des droites $(BN)$ et $(DM)$. Montrer que $\\widehat{MAN}=\\widehat{DPN}$.\n Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "4",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-05",
+    "title": "Un diviseur dans un intervalle",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 3,
+    "searchText": "Un diviseur dans un intervalle Soit $n$ un entier positif impair et $k$ un entier strictement positif. On suppose que le nombre de diviseurs positifs de $2n$ qui sont inférieurs ou égaux à $k$ est impair. Montrer qu'il existe un diviseur $d$ de $2n$ pour lequel $k<d\\leq2k$.\n Coupe Animath - Automne 2022 Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "5",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "12",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-06",
+    "title": "Dix intersections par droite",
+    "language": "fr",
+    "topic": "combinatorics",
+    "difficulty": 3,
+    "searchText": "Dix intersections par droite Soit $n$ un entier positif non nul. On suppose qu'il existe un ensemble de $n$ droites distinctes dans le plan telles que chacune d'elles en intersecte exactement dix autres. Quelles sont les valeurs possibles pour $n$ ?\n Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "6",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-07",
+    "title": "Une somme cyclique de fractions",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 4,
+    "searchText": "Une somme cyclique de fractions Soit $n\\geq3$ un entier strictement positif. Montrer que pour tous réels $x_1,\\ldots,x_n$ strictement positifs, on a l'inégalité suivante :\n\\[1<\\frac{x_1}{x_1+x_2}+\\frac{x_2}{x_2+x_3}+\\cdots+\\frac{x_{n-1}}{x_{n-1}+x_n}+\\frac{x_n}{x_n+x_1}<n-1.\\]\n Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "7",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2022-11",
+    "title": "Vingt entiers sur un cercle",
+    "language": "fr",
+    "topic": "combinatorics",
+    "difficulty": 3,
+    "searchText": "Vingt entiers sur un cercle Les entiers $1,2,\\ldots,20$ ont été arrangés autour d'un cercle, dans un certain ordre. Pour chacun de ces entiers $k$, Matthieu compte combien il y a d'entiers inférieurs à $k$ parmi les $9$ entiers qui suivent $k$ lorsqu'on parcourt le cercle dans le sens des aiguilles d'une montre ; il en compte $A(k)$. Il compte aussi combien il y a d'entiers inférieurs à $k$ parmi les $9$ entiers qui suivent $k$ lorsqu'on parcourt le cercle dans le sens inverse des aiguilles d'une montre ; il en compte $B(k)$. Matthieu note alors que $A(k)=B(k)$ pour tout $k$. Quel est le nombre diamétralement opposé à $11$ sur le cercle ?\n Coupe Animath - Automne 2022",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2022",
+        "number": "11",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-01",
+    "title": "Un quotient de produits",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "Un quotient de produits Calculer\n\\[\\frac{4\\times6\\times8\\times10\\times12}{2\\times3\\times4\\times5\\times6}.\\]\nSeule une réponse numérique est attendue ici.\n Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "1",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-02",
+    "title": "Un angle dans un carré",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 2,
+    "searchText": "Un angle dans un carré Soit $ABCD$ un carré de côté $1$. Soit $E$ le point du segment $[AC]$ tel que $AE=1$. Calculer la valeur, en degrés, de l'angle $\\widehat{BEC}$.\n Coupe Animath - Automne 2023 Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "2",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "9",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-03",
+    "title": "Sommes impaires",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 2,
+    "searchText": "Sommes impaires Dans chacune des cases d'un tableau carré de taille $5\\times5$, on inscrit un entier strictement positif. On suppose que, pour chaque ligne du tableau, la somme des entiers inscrits dans les cases de cette ligne est un entier impair. Montrer qu'il existe une colonne du tableau telle que la somme des entiers inscrits dans les cases de cette colonne est également impaire.\n Coupe Animath - Automne 2023 Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "3",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "10",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-04",
+    "title": "Les pépites des vingt nains",
+    "language": "fr",
+    "topic": "combinatorics",
+    "difficulty": 3,
+    "searchText": "Les pépites des vingt nains Un groupe de $20$ nains sortant de la mine s'assoit autour d'une table ronde pour compter les pépites d'or que chacun a minées. Ils font les constats suivants :\n\\begin{itemize}\n\\item La différence du nombre de pépites de deux nains voisins est toujours $2$ ou $3$.\n\\item Tous les nains ont miné un nombre de pépites différent.\n\\end{itemize}\nQuelle est la plus grande différence de pépites possible entre le nain qui a trouvé le plus de pépites et celui qui en a trouvé le moins ?\n Coupe Animath - Automne 2023 Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "4",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "11",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-05",
+    "title": "Des triangles et un alignement",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Des triangles et un alignement Soient $A$, $B$, $C$ et $O$ quatre points distincts tels que les triangles $OAB$ et $OAC$ sont équilatéraux de côté $1$. Soient $D$ et $E$ deux points distincts et différents de $A$ tels que les triangles $OBD$ et $OCE$ sont équilatéraux. Soit $P$ le point sur le segment $[AD]$ tel que $DP=1$. Soit $Q$ le point sur le segment $[AE]$ tel que $AQ=1$. Montrer que les points $B$, $P$ et $Q$ sont alignés.\n Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "5",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-06",
+    "title": "Le premier chiffre de deux puissances",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 3,
+    "searchText": "Le premier chiffre de deux puissances Pour tout entier $m$ strictement positif, on appelle premier chiffre de $m$ le chiffre le plus à gauche dans son écriture décimale. Soit $n$ un entier strictement positif. On suppose que les deux entiers $2^n$ et $5^n$ possèdent le même premier chiffre. Montrer que ce même premier chiffre est $3$.\n Coupe Animath - Automne 2023 Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "6",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "12",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-07",
+    "title": "Ensembles super-réguliers",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 4,
+    "searchText": "Ensembles super-réguliers Un ensemble de $n$ nombres réels non nuls et tous distincts est dit régulier si, lorsque l'on écrit ces nombres au tableau dans l'ordre croissant, la différence entre deux nombres voisins est toujours la même, quels que soient les deux entiers voisins choisis. Par exemple, l'ensemble $\\{4,18,-3,11\\}$ est régulier car ses éléments s'écrivent $-3$, $4$, $11$ et $18$ dans l'ordre croissant et on a bien $4-(-3)=11-4=18-11$.\n\nUn ensemble $A$ de réels non nuls tous distincts est dit super-régulier s'il est régulier et que l'ensemble formé par les inverses des nombres de l'ensemble $A$ est également régulier.\n\nQuel est le plus grand entier $n$ tel qu'il existe un ensemble super-régulier de $n$ nombres réels non nuls et tous distincts ?\n Coupe Animath - Automne 2023 Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "7",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "13",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-08",
+    "title": "Deux notes inconnues",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "Deux notes inconnues Maena a reçu cinq notes ce trimestre mais ne connaît que les trois premières, qui sont $13$, $14$ et $17$. La moyenne (où toutes les notes ont la même importance) de ces cinq notes est $16$. Quelle est la moyenne des deux notes que Maena ne connaît pas encore ?\n\nSeule une réponse numérique est attendue ici.\n Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "8",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-14",
+    "title": "Des parallèles dans un rectangle",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Des parallèles dans un rectangle Soit $ABCD$ un rectangle et $M$ le milieu du segment $[CD]$. Une droite parallèle à $(AB)$ coupe les segments $[AD]$, $[AM]$, $[BM]$, $[BC]$ respectivement en les points $P$, $Q$, $R$ et $S$. La droite $(DR)$ coupe le segment $[AM]$ en $X$ et le segment $[BC]$ en $Y$. Si $DX=6$ et $XR=4$, quelle est la longueur du segment $[RY]$ ?\n Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "14",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2023-15",
+    "title": "Des jetons dans une grille",
+    "language": "fr",
+    "topic": "combinatorics",
+    "difficulty": 4,
+    "searchText": "Des jetons dans une grille Théo place des jetons dans les cases d'un tableau de taille $30\\times30$ en respectant les règles suivantes :\n\\begin{itemize}\n\\item Chaque case contient au plus un jeton.\n\\item Pour chaque case vide, il y a, parmi les cases de la même ligne ou de la même colonne, au moins une case contenant un jeton.\n\\item Pour chaque jeton, il y a, parmi les cases de la même ligne ou de la même colonne, au plus une autre case contenant un jeton.\n\\end{itemize}\nDéterminer le plus petit entier $k$ vérifiant la propriété suivante : quelle que soit la disposition choisie par Théo, chaque carré de taille $k\\times k$ de la grille contient au moins une case avec un jeton.\n Coupe Animath - Automne 2023",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2023",
+        "number": "15",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-01",
+    "title": "Une différence au carré",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "Une différence au carré Calculer\n\\[\\frac{(2039-2024)^2}{9}.\\]\nSeule une réponse numérique est attendue ici.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "1",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-02",
+    "title": "Deux bissectrices",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 2,
+    "searchText": "Deux bissectrices Soit $ABC$ un triangle et soit $D$ un point sur le segment $[BC]$ (autre que $B$ et $C$). Soit $P$ le point sur le segment $[AB]$ tel que $(DP)$ est la bissectrice de $\\widehat{ADB}$, et soit $Q$ le point sur le segment $[AC]$ tel que $(DQ)$ est la bissectrice de $\\widehat{CDA}$.\n\nQue vaut l'angle $\\widehat{QDP}$ ?\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "2",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-03",
+    "title": "Deux diviseurs égaux",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 2,
+    "searchText": "Deux diviseurs égaux Soient $a$, $b$ et $n$ trois entiers strictement positifs tels que $a$ et $b$ divisent $n$ et $n=a+b+ab$. Montrer que $a=b$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "3",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-04",
+    "title": "Produits sur un octogone",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 3,
+    "searchText": "Produits sur un octogone Sur chaque sommet d'un octogone, Anna écrit en bleu un entier strictement positif (les $8$ entiers ainsi écrits ne sont pas forcément distincts). Puis, sur chaque arête de l'octogone, Anna écrit en rouge le produit des deux entiers bleus écrits aux extrémités de cette arête. Anna peut-elle choisir les entiers bleus de sorte que les entiers rouges soient exactement $1,2,3,4,5,6,7$ et $8$ (pas forcément dans cet ordre) ?\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "4",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-05",
+    "title": "Trois couleurs dans une grille",
+    "language": "fr",
+    "topic": "combinatorics",
+    "difficulty": 4,
+    "searchText": "Trois couleurs dans une grille On considère une grille $2024\\times2024$. Quentin dispose de $k$ couleurs et colorie chacune des $2024^2$ cases de la grille avec l'une de ces $k$ couleurs, de sorte que chaque couleur est utilisée au moins une fois. Déterminer le plus petit entier $k$ vérifiant la propriété suivante :\n\nQuel que soit le coloriage de Quentin, on peut toujours trouver trois cases $C_1$, $C_2$ et $C_3$ de couleurs deux à deux distinctes telles que $C_1$ et $C_2$ sont sur la même ligne et $C_2$ et $C_3$ sont sur la même colonne.\n Coupe Animath - Automne 2024 Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "5",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      },
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "11",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-06",
+    "title": "Un carré et deux triangles équilatéraux",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Un carré et deux triangles équilatéraux Soit $ABCD$ un carré, et soient $E$ et $F$ les points à l'extérieur de $ABCD$ tels que $ABE$ et $DAF$ sont équilatéraux. On note $H$ le milieu de $[EF]$ et $G$ le point d'intersection des droites $(BF)$ et $(CE)$. Montrer que $GH=GC$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "6",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-07",
+    "title": "Une inégalité à trois variables",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 3,
+    "searchText": "Une inégalité à trois variables Soient $a$, $b$ et $c$ des réels strictement positifs tels que\n\\[a+b\\geq ab,\\qquad b+c\\geq bc\\quad\\text{et}\\quad c+a\\geq ca.\\]\nMontrer que $a+b+c\\geq\\frac34abc$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "7",
+        "page": 3,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-08",
+    "title": "Somme des inverses",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 1,
+    "searchText": "Somme des inverses Soient $x$ et $y$ des réels non nuls tels que $x+y=2024xy$. Calculer\n\\[\\frac1x+\\frac1y.\\]\nSeule une réponse numérique est attendue ici.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "8",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-09",
+    "title": "Deux quotients entiers",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 2,
+    "searchText": "Deux quotients entiers Soient $a\\geq2$ et $b\\geq2$ deux entiers. On suppose que\n\\[\\frac{a-1}{b-1}-\\frac ab=1.\\]\nMontrer que $\\frac ab$ et $\\frac{a-1}{b-1}$ sont des entiers.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "9",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-10",
+    "title": "Un point dans un quadrilatère",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Un point dans un quadrilatère Déterminer s'il existe cinq points du plan $A$, $B$, $C$, $D$ et $P$ tous distincts et vérifiant les conditions suivantes :\n\\begin{itemize}\n\\item le quadrilatère $ABCD$ est non croisé ;\n\\item le point $P$ se trouve strictement à l'intérieur de ce quadrilatère ;\n\\item les segments $[AP]$, $[BP]$, $[CP]$ et $[DP]$ sont tous contenus à l'intérieur du quadrilatère $ABCD$ ;\n\\item on a les égalités de longueurs $AP=AB$, $BP=BC$, $CP=CD$ et $DP=DA$.\n\\end{itemize}\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "10",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-12",
+    "title": "Un rapport de longueurs",
+    "language": "fr",
+    "topic": "geometry",
+    "difficulty": 4,
+    "searchText": "Un rapport de longueurs Soit $ABCD$ un carré, et soient $P$ et $Q$ les points à l'extérieur de $ABCD$ tels que $ABP$ et $DAQ$ sont équilatéraux. On note $M$ le milieu de $[PQ]$ et $N$ le point d'intersection des droites $(BQ)$ et $(DP)$. Calculer $\\frac{NM}{NC}$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "12",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-13",
+    "title": "Divisibilité dans une suite",
+    "language": "fr",
+    "topic": "number_theory",
+    "difficulty": 4,
+    "searchText": "Divisibilité dans une suite Soit $a_1,a_2,\\ldots$ une suite infinie d'entiers. On suppose, pour tous les entiers $k\\geq1$ et tout $\\ell\\geq1$, que $k+\\ell$ divise $a_k+a_\\ell$. Montrer, pour tous les entiers $k\\geq1$ et $\\ell\\geq1$ avec $k\\neq\\ell$, que $k-\\ell$ divise $a_k-a_\\ell$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "13",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-14",
+    "title": "Cent nombres sur un cercle",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 4,
+    "searchText": "Cent nombres sur un cercle Cent nombres réels sont placés autour d'un cercle, de sorte que chaque nombre est strictement plus grand que la somme des deux nombres qui le suivent (dans le sens des aiguilles d'une montre). Déterminer le nombre maximal de réels strictement positifs sur ce cercle.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "14",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "animath-2024-15",
+    "title": "Sommes de parties fractionnaires",
+    "language": "fr",
+    "topic": "algebra",
+    "difficulty": 4,
+    "searchText": "Sommes de parties fractionnaires Déterminer le plus petit réel $\\alpha$ ayant la propriété suivante :\n\nQuels que soient les réels $x_1,\\ldots,x_{2024}$, il existe toujours un indice $i$ compris entre $1$ et $2024$ (au sens large) tel que\n\\[\\{x_i-x_1\\}+\\{x_i-x_2\\}+\\cdots+\\{x_i-x_{2024}\\}\\leq\\alpha.\\]\nOn rappelle que $\\{x\\}$ désigne la partie fractionnaire du réel $x$, c'est-à-dire $\\{x\\}=x-\\lfloor x\\rfloor$ où $\\lfloor x\\rfloor$ est la partie entière de $x$, autrement dit le plus grand entier inférieur ou égal à $x$.\nPar exemple $\\{1{,}2\\}=0{,}2$, $\\{3\\}=0$ et $\\{-2{,}4\\}=0{,}6$.\n Coupe Animath - Automne 2024",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Coupe Animath - Automne 2024",
+        "number": "15",
+        "page": 4,
+        "url": "https://maths-olympiques.fr/?page_id=69"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "geometry-1-10",
+    "title": "Fifteen-degree angles in a square",
+    "language": "en",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Fifteen-degree angles in a square Given square $ABCD$ with $m\\angle EDC=m\\angle ECD=15^\\circ$, prove triangle $ABE$ is equilateral (see figure).\n Challenging Problems In Geometry",
+    "editorialNote": "Original statement transcribed; typography normalised.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Geometry",
+        "number": "1-10",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": true
+  },
+  {
+    "id": "geometry-1-7",
+    "title": "A perpendicular through a midpoint",
+    "language": "en",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "A perpendicular through a midpoint In square $ABCD$, $M$ is the midpoint of $\\overline{AB}$. A line perpendicular to $\\overline{MC}$ at $M$ meets $\\overline{AD}$ at $K$. Prove that $\\angle BCM=\\angle KCM$.\n Challenging Problems In Geometry",
+    "editorialNote": "Main numbered problem transcribed. Separately labelled Challenge not included.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Geometry",
+        "number": "1-7",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "geometry-1-8",
+    "title": "Two angle bisectors and two perpendiculars",
+    "language": "en",
+    "topic": "geometry",
+    "difficulty": 3,
+    "searchText": "Two angle bisectors and two perpendiculars Given any triangle $ABC$, $\\overline{AE}$ bisects $\\angle BAC$, $\\overline{BD}$ bisects $\\angle ABC$, $\\overline{CP}\\perp\\overline{BD}$, and $\\overline{CQ}\\perp\\overline{AE}$ (see figure), prove that $\\overline{PQ}$ is parallel to $\\overline{AB}$.\n Challenging Problems In Geometry",
+    "editorialNote": "Main numbered problem and original figure transcribed. Separately labelled Challenge not included.",
+    "sources": [
+      {
+        "title": "Challenging Problems In Geometry",
+        "number": "1-8",
+        "page": 14,
+        "url": null
+      }
+    ],
+    "hasFigure": true
+  },
+  {
+    "id": "imo-2024-01",
+    "title": "Divisibility of floor sums",
+    "language": "en",
+    "topic": "number_theory",
+    "difficulty": 5,
+    "searchText": "Divisibility of floor sums Which real values of $\\alpha$ satisfy\n\\[n\\mid\\sum_{k=1}^{n}\\lfloor k\\alpha\\rfloor\\qquad\\text{for every integer }n\\geq1?\\]\nHere $\\lfloor t\\rfloor$ means the largest integer not exceeding $t$.\n International Mathematical Olympiad 2024",
+    "editorialNote": "Editorial restatement of IMO 2024 problem 1; mathematical conditions preserved, not official wording.",
+    "sources": [
+      {
+        "title": "International Mathematical Olympiad 2024",
+        "number": "1",
+        "page": 1,
+        "url": "https://www.imo-official.org/assets/documents/problems/2024/2024_eng.pdf"
+      }
+    ],
+    "hasFigure": false
+  },
+  {
+    "id": "imo-2024-02",
+    "title": "An eventually constant greatest common divisor",
+    "language": "en",
+    "topic": "number_theory",
+    "difficulty": 5,
+    "searchText": "An eventually constant greatest common divisor Classify the positive integer pairs $(a,b)$ for which the sequence\n\\[\\bigl(\\gcd(a^n+b,\\ b^n+a)\\bigr)_{n\\geq1}\\]\nis eventually constant. Equivalently, positive integers $g,N$ must exist with $\\gcd(a^n+b,b^n+a)=g$ whenever the integer $n$ satisfies $n\\geq N$.\n International Mathematical Olympiad 2024",
+    "editorialNote": "Editorial restatement of IMO 2024 problem 2; mathematical conditions preserved, not official wording.",
+    "sources": [
+      {
+        "title": "International Mathematical Olympiad 2024",
+        "number": "2",
+        "page": 1,
+        "url": "https://www.imo-official.org/assets/documents/problems/2024/2024_eng.pdf"
+      }
+    ],
+    "hasFigure": false
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "name": "le-probleme-du-jour",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared repository for the WordPress website, iPhone app and future Android app.",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test:latex": "node --test shared/latex/tests/*.test.mjs",
+    "brand:sync": "python3 tools/sync_branding.py"
+  }
+}
