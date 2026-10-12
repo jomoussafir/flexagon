@@ -20,10 +20,13 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 
 - English interface with WordPress email/password accounts, display names, email confirmation and password reset.
 - Member-only catalogue; private drafts, submissions and admin review.
-- French and English versions, independent approval and publication.
+- User-named language versions, with independent approval and publication.
 - LaTeX editor/import, live preview, protected SVG/PNG/JPEG figures with
   `\includegraphics`, captions and local `\label` / `\ref` numbering.
-- Categories, difficulty 1–5, sources, keywords, filters and FR/EN validation sorting.
+- Categories, difficulty 1–5, sources, keywords, filters and per-language validation sorting.
+- A minimal home banner with About, Problem, Sign In and Create Account.
+- Personal Progress grids with solved/unsolved views, category/difficulty/source grouping,
+  clickable cards, difficulty colours and group completion counts.
 - Per-member progression: unseen, bookmarked, attempted and solved.
 - Version history; editing a published problem leaves its approved snapshot online.
 - Profile images, opt-in new-publication email and account deletion.
@@ -60,6 +63,7 @@ WordPress/PHP and MySQL at OVH; Playground is only a development dependency.
 npm run build:web
 npm run test:latex
 npm run test:web
+npm run test:progress
 python3 tools/sync_branding.py --check
 npm run package:web
 ```

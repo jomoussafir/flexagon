@@ -27,8 +27,23 @@ a same-origin `Origin` and `X-LPDJ-Form` nonce. Login returns fresh session toke
 API responses are not public cache entries.
 
 A draft contains `id`, `revision`, `state`, `category`, `difficulty` (1–5), `source`,
-`keywords`, `versions.fr/en` (`title`, `latex`, `approved`), `assets` (filename →
+`keywords`, `versions` (language key → `language`, `title`, `latex`, `approved`), `assets` (filename →
 ID/mime/url), `reviewNote`, `updated` and `author` (public pseudonym only).
+
+Versions support 1–20 user-named languages, including languages outside the suggested
+list. Keys are stable lowercase identifiers (`en`, `es`, `pt-br`, or `und-xxxxxxxx`
+for a custom language); the `language` field is the displayed name, up to 60 characters.
+Each name must be unique (case-insensitive). Each title is limited to 300 characters
+and each statement to 60 KB, with a 600 KB limit across all statements. Missing
+language names on old FR/EN records are presented as French/English. New drafts
+start with one English version, which the author may rename. Submitting a versions
+map replaces the draft's language set; omitted languages remain in an existing
+published snapshot until the administrator explicitly republishes. No language is
+required, and clients must not assume FR/EN exist.
+
+The published overview includes the current user's `progress` and language names,
+but omits full statements. It supplies the website's personal Progress grids;
+`unseen`, `bookmarked` and `attempted` all count as unsolved.
 
 Save requests contain the current revision and action `save`, `submit`, `publish`,
 `return` or `unpublish`. A stale revision receives HTTP 409. Only an administrator may

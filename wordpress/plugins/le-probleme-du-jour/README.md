@@ -5,7 +5,7 @@ WordPress 6.8+; tested with PHP 8.3 and WordPress 7.1.3 locally.
 
 Records use non-public WordPress post types with protected metadata. Draft state and
 published snapshots are separate. A revision counter plus per-record lock rejects
-stale saves and uploads. Admins can publish only checked FR/EN versions; members cannot
+stale saves and uploads. Admins can publish only checked language versions; members cannot
 forge approval or edit another member's draft. Approval survives the first Save & Publish.
 
 Figure uploads accept a conservative SVG subset and validated PNG/JPEG, with 2 MiB per

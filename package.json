@@ -14,7 +14,8 @@
     "start": "npm run build:web && node_modules/node/bin/node tools/start-web.mjs",
     "dev": "npm start",
     "test:web": "node_modules/node/bin/node tests/wordpress.test.mjs",
-    "package:web": "python3 tools/package-web.py"
+    "package:web": "python3 tools/package-web.py",
+    "test:progress": "node --test tests/progress.test.mjs"
   },
   "devDependencies": {
     "@wp-playground/cli": "^3.1.57",

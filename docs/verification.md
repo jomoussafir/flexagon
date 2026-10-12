@@ -3,12 +3,22 @@
 ## Current website
 
 - WordPress 7.1.3 / PHP 8.3 running in the official local Playground runtime.
-- 37 isolated integration checks pass: email confirmation, cookie/nonces, member/admin
+- 43 isolated integration checks pass: email confirmation, cookie/nonces, member/admin
   permissions, private drafts and images, safe/unsafe SVG uploads, stale revision
   rejection, FR/EN publication, first Save & Publish approval preservation, published
   snapshot isolation, personal progress, revision history, return notes, profile
   images, opt-out notifications, password reset and account/draft deletion; legacy
   import permissions, preserved LaTeX/figures/history and duplicate/overwrite prevention.
+- Named-language checks cover submissions without English/French, custom identifiers,
+  independent approval, private edits/removals, preserved history, label validation,
+  member publication denial and current per-user progress in overview responses.
+- All 5 Progress model tests pass: solved/unsolved grouping, numeric difficulty and
+  source ordering, combined filters, translated-title searches and immutable inputs.
+- Browser verification on a separate disposable collection covered the four-link
+  landing banner, About manifesto, member sign-in, Progress grouping/filtering,
+  24-card pagination, card-to-reader navigation, language selection, marking solved
+  and returning to the updated grid, and submitting English/Occitan versions.
+  Layouts were inspected at 1280 px and 390 px; the mobile page has no horizontal overflow.
 - All 8 shared LaTeX tests pass after the KaTeX 0.19.0 security update.
 - Website asset build succeeds; npm audit reports zero known vulnerabilities.
 - Plugin/theme deployment ZIPs are generated and checked for archive integrity.

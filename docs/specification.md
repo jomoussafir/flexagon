@@ -20,8 +20,9 @@ delivery will be configured and tested. Mobile sign-in needs a supported integra
 
 LaTeX text with uploaded figures referenced through `\includegraphics`, captions and
 local `\label` / `\ref`; support SVG, PNG and JPEG with appropriate validation.
-French and English versions can be approved and published separately. Show the only
-published language when just one exists; provide EN/FR selection when both exist.
+Authors can add and name several language versions. Each version has its own title,
+LaTeX statement and approval. Display the only published language when just one exists;
+provide a selector with language names when several are published. Figures are shared.
 Keywords, difficulty 1–5, mathematical category and source references are editable.
 
 The workflow is draft → submitted → published, or returned for changes. Admins may
@@ -37,8 +38,17 @@ not automatically publish. Both mobile clients use exactly the published version
 available to signed-in website members. Retain the existing app logo with a white
 exterior, source grouping/order, five mathematical categories and progress choices.
 
+The landing page has only the icon and About, Problem, Sign In and Create Account
+links. About contains “Curated list of mathematical puzzles”. Problem opens the selection
+page after sign-in. Members also see Submit a problem, Progress and an account menu.
+Progress defaults to solved problems, with unsolved/all options; search and filters by
+category, difficulty or source combine with grouping by the same fields. Clickable cards
+show title, numeric difficulty, status and source. Difficulty colours run from pale blue
+to purple; group counts and bars show completion. Load 24 cards per group at a time.
+
 ## Status
 
 The WordPress website implements the accounts, submission, review and publication
-workflow locally. OVH deployment and real email delivery, the historic database import,
-and native mobile authentication/API integration remain pending. See verification.md.
+workflow locally. The historic import contains 1,854 unpublished records; one remaining
+record awaits authenticated export. OVH deployment, real email delivery and native mobile
+authentication/API integration remain pending. See verification.md.

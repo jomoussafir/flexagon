@@ -120,7 +120,6 @@ function lpdj_account_delete($r) {
         if ($pub) {
             $pub['author'] = 'Deleted account'; lpdj_json_meta($post->ID, '_lpdj_published', $pub);
             $draft = $pub;
-            foreach (['fr','en'] as $lang) if (!isset($draft['versions'][$lang])) $draft['versions'][$lang] = ['title' => '', 'latex' => '', 'approved' => false];
             $draft['reviewNote'] = ''; $draft['revision'] = (int) get_post_meta($post->ID, '_lpdj_draft', true)['revision'] + 1;
             lpdj_json_meta($post->ID, '_lpdj_draft', $draft); wp_update_post(['ID' => $post->ID, 'post_author' => 0]);
             foreach (get_posts(['post_type' => 'lpdj_history', 'post_status' => 'private', 'post_parent' => $post->ID, 'posts_per_page' => -1]) as $history) {

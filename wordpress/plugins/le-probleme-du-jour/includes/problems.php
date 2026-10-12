@@ -8,6 +8,7 @@ function lpdj_problem_post($id) {
 function lpdj_can_edit($post) { return $post && (lpdj_admin() || (int) $post->post_author === get_current_user_id()); }
 function lpdj_json_meta($id, $key, $value) { return update_post_meta($id, $key, wp_slash($value)); }
 function lpdj_source_name($source) { return $source === 'Communauté' ? 'Community' : ($source ?: 'Community'); }
+function lpdj_language_name($key, $version) { return $version['language'] ?? (['en'=>'English','fr'=>'French'][$key] ?? strtoupper($key)); }
 function lpdj_draft($post) {
     $data = get_post_meta($post->ID, '_lpdj_draft', true);
     $data['id'] = $post->ID;
@@ -18,6 +19,8 @@ function lpdj_draft($post) {
 }
 function lpdj_present($data, $editor = false) {
     $data['source'] = lpdj_source_name($data['source']);
+    foreach ($data['versions'] as $key => &$version) $version['language'] = lpdj_language_name($key, $version);
+    unset($version);
     foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name]['url'] = lpdj_asset_url($asset['id']);
     $data['progress'] = get_user_meta(get_current_user_id(), '_lpdj_progress_' . $data['id'], true) ?: 'unseen';
     $data['editable'] = lpdj_can_edit(lpdj_problem_post($data['id']));
@@ -64,7 +67,7 @@ function lpdj_problem_create() {
     if (is_wp_error($id)) return lpdj_error('Could not create the problem.', 500);
     $data = ['id' => $id, 'revision' => 1, 'state' => 'draft', 'category' => 'Algebra', 'difficulty' => 1,
         'source' => 'Community', 'keywords' => [], 'reviewNote' => '', 'assets' => [],
-        'updated' => gmdate('c'), 'versions' => ['fr' => ['title' => '', 'latex' => '', 'approved' => false], 'en' => ['title' => '', 'latex' => '', 'approved' => false]]];
+        'updated' => gmdate('c'), 'versions' => ['en' => ['language'=>'English', 'title' => '', 'latex' => '', 'approved' => false]]];
     lpdj_json_meta($id, '_lpdj_draft', $data);
     return lpdj_present(lpdj_draft(get_post($id)), true);
 }
@@ -78,16 +81,27 @@ function lpdj_validate_problem($r, $old) {
     $data = $old;
     $data['category'] = $category; $data['difficulty'] = $difficulty; $data['source'] = $source ?: 'Community'; $data['keywords'] = $keywords;
     $versions = $r['versions'];
-    if (!is_array($versions)) return lpdj_error('Missing language versions.');
+    if (!is_array($versions) || count($versions)<1 || count($versions)>20) return lpdj_error('Use between 1 and 20 language versions.');
+    $data['versions'] = []; $languages = []; $total_size = 0;
     $metadata_changed = $old['category'] !== $category || $old['difficulty'] !== $difficulty || $old['source'] !== $data['source'] || $old['keywords'] !== $keywords;
-    foreach (['fr','en'] as $lang) {
-        $version = $versions[$lang] ?? []; $title = sanitize_text_field((string) ($version['title'] ?? ''));
+    foreach ($versions as $lang => $version) {
+        if (!is_string($lang) || !preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/D', $lang) || strlen($lang)>40 || !is_array($version)) return lpdj_error('Invalid language version.');
+        foreach (['title','latex','language'] as $field) if (isset($version[$field]) && !is_string($version[$field])) return lpdj_error('Invalid language text.');
+        $name = sanitize_text_field(lpdj_language_name($lang, $version));
+        if (!$name || mb_strlen($name)>60) return lpdj_error('Give each language a name of up to 60 characters.');
+        $canonical = mb_strtolower(trim($name));
+        if (in_array($canonical,$languages,true)) return lpdj_error('Each language can appear only once.');
+        $languages[] = $canonical;
+        $title = sanitize_text_field((string) ($version['title'] ?? ''));
         $latex = str_replace("\0", '', (string) ($version['latex'] ?? ''));
         if (mb_strlen($title) > 300 || strlen($latex) > 60000) return lpdj_error('Limit: 300 characters for a title and 60 KB for a statement.');
-        $changed = $metadata_changed || $title !== $old['versions'][$lang]['title'] || $latex !== $old['versions'][$lang]['latex'];
+        $total_size += strlen($latex);
+        if ($total_size>600000) return lpdj_error('The combined statements must fit within 600 KB.');
+        $previous = $old['versions'][$lang] ?? ['title'=>'','latex'=>'','approved'=>false];
+        $changed = $metadata_changed || $title !== $previous['title'] || $latex !== $previous['latex'] || $name !== lpdj_language_name($lang, $previous);
         $approved = lpdj_admin() ? !empty($version['approved']) : (!$changed && !empty($old['versions'][$lang]['approved']));
         if ($approved && (!$title || !trim($latex))) return lpdj_error('A verified version needs a title and a statement.');
-        $data['versions'][$lang] = ['title' => $title, 'latex' => $latex, 'approved' => $approved];
+        $data['versions'][$lang] = ['language'=>$name, 'title' => $title, 'latex' => $latex, 'approved' => $approved];
     }
     if (lpdj_admin()) $data['reviewNote'] = sanitize_textarea_field((string) $r['reviewNote']);
     if (strlen($data['reviewNote']) > 5000) return lpdj_error('The review note is too long.');
@@ -149,7 +163,9 @@ function lpdj_problem_save($r) {
             $data['state'] = 'submitted';
         } else $data['state'] = 'draft';
         lpdj_json_meta($id, '_lpdj_draft', $data);
-        wp_update_post(['ID' => $id, 'post_title' => wp_slash($data['versions']['fr']['title'] ?: $data['versions']['en']['title'] ?: 'New problem')]);
+        $titles = array_filter(array_column($data['versions'], 'title'));
+        $title = ($data['versions']['en']['title'] ?? '') ?: (reset($titles) ?: 'New problem');
+        wp_update_post(['ID' => $id, 'post_title' => wp_slash($title)]);
         wp_insert_post(wp_slash(['post_type' => 'lpdj_history', 'post_status' => 'private', 'post_parent' => $id, 'post_author' => get_current_user_id(),
             'post_title' => $action, 'post_content' => wp_json_encode($data, JSON_UNESCAPED_UNICODE)]));
         return lpdj_present(lpdj_draft(get_post($id)), true);
