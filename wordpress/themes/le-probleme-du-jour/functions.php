@@ -8,6 +8,7 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script('lpdj-web', $path . '/assets/app.js', [], filemtime(get_template_directory() . '/assets/app.js'), true);
     wp_add_inline_script('lpdj-web', 'window.LPDJ=' . wp_json_encode([
         'api' => rest_url('lpdj/v1/'), 'logo' => $path . '/assets/logo.png',
+        'pdfAssets' => $path . '/assets/pdfjs/',
         'session' => function_exists('lpdj_session') ? lpdj_session() : null,
     ]) . ';', 'before');
 });

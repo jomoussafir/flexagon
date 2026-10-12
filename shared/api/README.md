@@ -15,6 +15,7 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 | `GET /problems/{id}?context=edit` | Author/admin draft with current revision |
 | `POST /problems/{id}` | Save, submit, publish, return or unpublish |
 | `DELETE /problems/{id}` | Delete an unpublished draft and its assets/history |
+| `GET /problems/{id}/reference?index=0&page=…` | Admin-only source PDF metadata; page defaults to the recorded occurrence |
 | `GET /problems/{id}/history` | Author/admin revision history |
 | `POST /problems/{id}/progress` | Personal unseen/bookmarked/attempted/solved state |
 | `POST /assets` | Multipart file, problem ID, current revision; problem 0 for avatar |
@@ -57,3 +58,13 @@ Passwords over HTTPS are compatible with member-authorized REST routes, but the
 native sign-in/authorization experience and image loading still need implementation.
 The website account-form endpoints intentionally enforce browser same-origin rules;
 do not embed the WordPress administrator credentials in an app.
+
+## Original reference books
+
+Only admin review overviews and admin edit responses include `references` (source ID,
+title, occurrence index, PDF page, printed page and problem number). Publication never
+copies these into the reader snapshot. The reference endpoint selects a part from the
+private file manifest and returns the total page count, part range, page inside the
+part and an authenticated PDF URL. The protected `lpdj_reference` admin-ajax action
+checks administrator permissions on every download and sends `private, no-store`.
+There is no public reference endpoint, file upload or arbitrary-path download route.

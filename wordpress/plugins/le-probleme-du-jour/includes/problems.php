@@ -40,6 +40,7 @@ function lpdj_problems_list($r) {
         $data = $scope === 'published' ? $pub : lpdj_draft($post);
         if (!$data) continue;
         $data = lpdj_present($data, $scope !== 'published');
+        if ($scope === 'review') $data['references'] = lpdj_problem_references(get_post_meta($post->ID, '_lpdj_legacy', true));
         // Overview records do not include full statements or image data.
         foreach ($data['versions'] as &$version) unset($version['latex']);
         unset($version, $data['assets']);
@@ -56,6 +57,7 @@ function lpdj_problem_get($r) {
     if (!$data) return lpdj_error('This problem is not published.', 404);
     $data = lpdj_present($data, $edit);
     if ($edit && lpdj_admin() && ($legacy = get_post_meta($post->ID, '_lpdj_legacy', true))) {
+        $data['references'] = lpdj_problem_references($legacy);
         $data['legacy'] = ['id'=>$legacy['id'],'revision'=>$legacy['revision'],'sources'=>$legacy['sources'],'occurrences'=>$legacy['occurrences'],'note'=>$legacy['note'],
             'reviewUrl'=>'https://le-probleme-du-jour-review.msfr935475.chatgpt.site/validation?problem='.rawurlencode($legacy['id'])];
     }
@@ -105,7 +107,7 @@ function lpdj_validate_problem($r, $old) {
     }
     if (lpdj_admin()) $data['reviewNote'] = sanitize_textarea_field((string) $r['reviewNote']);
     if (strlen($data['reviewNote']) > 5000) return lpdj_error('The review note is too long.');
-    unset($data['hasPublished'], $data['editable'], $data['progress']);
+    unset($data['hasPublished'], $data['editable'], $data['progress'], $data['references'], $data['legacy']);
     return $data;
 }
 function lpdj_check_figures($version, $assets) {

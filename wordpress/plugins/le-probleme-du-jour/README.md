@@ -19,3 +19,8 @@ Do not set those constants in production. Delivery of notifications uses WP-Cron
 configure a reliable scheduled runner on the production host if traffic is low.
 
 Deactivating the plugin preserves content. There is no destructive uninstall hook.
+
+Original source PDFs are served only to administrators by `lpdj_reference`. Configure
+`LPDJ_REFERENCE_DIR` to a private directory outside the web root with `manifest.json`
+and the matching PDF files. The local launcher mounts the ignored private library.
+Reference metadata is never included in published snapshots or member responses.

@@ -1,4 +1,5 @@
 import { render, escapeHTML as esc } from '../../../../shared/latex/render.ts';
+import { mountReference } from './reference.ts';
 import { problemTitle, progressGroups, type ProgressFilters } from './progress.ts';
 
 declare global { interface Window { LPDJ: any } }
@@ -23,6 +24,7 @@ let progressItems:any[]=[];
 let progressFilters:ProgressFilters={groupBy:'category',mode:'solved',search:'',category:'',difficulty:'',source:''};
 let progressExpanded:Record<string,number>=Object.create(null);
 let readerOrigin='';
+let disposeReference:(()=>void)|undefined;
 const $ = (selector: string) => document.querySelector(selector) as any;
 const value = (id: string) => ($('#'+id) as HTMLInputElement)?.value ?? '';
 const checked = (id: string) => !!($('#'+id) as HTMLInputElement)?.checked;
@@ -85,13 +87,27 @@ async function collection(scope='published') {
 function filtered() {
     return listing.items.filter((p:any)=>!filters.search||[...Object.values(p.versions).map((v:any)=>v.title),...p.keywords].join(' ').toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())).filter((p:any)=>!filters.category||p.category===filters.category).filter((p:any)=>!filters.difficulty||p.difficulty===Number(filters.difficulty)).filter((p:any)=>!filters.source||p.source===filters.source).filter((p:any)=>!filters.progress||p.progress===filters.progress).filter((p:any)=>!filters.status||p.state===filters.status).sort((a:any,b:any)=>filters.sort==='title'?titleOf(a).localeCompare(titleOf(b),'en'):filters.sort==='difficulty-asc'?a.difficulty-b.difficulty:filters.sort==='difficulty-desc'?b.difficulty-a.difficulty:filters.sort.startsWith('language:')?Number(languageApproved(b,filters.sort.slice(9)))-Number(languageApproved(a,filters.sort.slice(9))):b.id-a.id);
 }
+function referenceLinks(p:any, detailed=false) {
+    if(!p.references?.length)return '';
+    return `<div class="reference-links ${detailed?'reference-links-detail':''}" aria-label="Reference PDFs"><span>Reference PDF:</span>${p.references.map((ref:any)=>`<a href="#/reference/${p.id}?index=${ref.index}" target="_blank" rel="noopener" title="${esc(ref.title)} — PDF page ${ref.page}" aria-label="Open ${esc(ref.title)}, PDF page ${ref.page}">${detailed?esc(ref.title)+' · ':''}PDF · p. ${ref.page}${ref.printedPage&&ref.printedPage!==String(ref.page)?' (printed '+esc(ref.printedPage)+')':''} ↗</a>`).join('')}</div>`;
+}
+async function referencePage(id:string,params:URLSearchParams) {
+    if(!session.user){routeTo('/connexion?next='+encodeURIComponent('/reference/'+id+'?'+params));return;}
+    if(!session.user.admin){shell(empty('Restricted access','Reference PDFs are available to administrators.'));return;}
+    const seq=routeSequence, index=params.get('index')||'0';
+    shell(intro('Reference PDF')+'<p class="loading">Loading…</p>');
+    const path='problems/'+id+'/reference?index='+encodeURIComponent(index);
+    const info=await api(path);if(seq!==routeSequence)return;
+    shell(`<div class="reader-heading"><a class="text-link" href="#/administration">← Admin review</a><a class="text-link" href="#/editer/${Number(id)}">Back to problem →</a></div>${intro(esc(info.title))}<p class="reference-context">${info.number?'Problem '+esc(info.number)+' · ':''}PDF page ${info.originalPage}${info.printedPage?' · Printed page '+esc(info.printedPage):''}</p><section id="reference-viewer" aria-label="Reference PDF viewer"></section>`,'review');
+    disposeReference=mountReference($('#reference-viewer'),info,page=>api(path+'&page='+page),cfg.pdfAssets);
+}
 function drawList(reset=true) {
     if(reset)listPage=1;
     const all=filtered(),scope=$('#problem-list').dataset.scope;
     const pages=Math.max(1,Math.ceil(all.length/pageSize));listPage=Math.min(listPage,pages);
     const items=all.slice((listPage-1)*pageSize,listPage*pageSize);
     $('#result-count').textContent=`${all.length.toLocaleString('en-GB')} problem${all.length!==1?'s':''}`;
-    $('#problem-list').innerHTML=items.length?`<div class="problem-table">${items.map((p:any)=>`<a class="problem-row" href="#/${scope==='published'?'probleme':'editer'}/${p.id}"><span class="problem-name"><strong>${esc(titleOf(p))}</strong><small>${esc(categories[p.category])} <span>·</span> ${esc(p.source)} ${scope!=='published'?`<span>·</span> ${esc(p.author)}`:''}</small></span><span class="level-label">Level ${p.difficulty}</span>${langSquares(p)}<span class="status ${scope==='published'?p.progress:p.state}">${scope==='published'?progress[p.progress]:statuses[p.state]}</span><span class="row-arrow">↗</span></a>`).join('')}</div>`:listing.total?empty('No results','Try different filters.','<button class="button secondary" data-action="reset-filters">Clear filters</button>'):empty(scope==='published'?'No published problems':'No submissions',scope==='published'?'':'','<button class="button" data-action="new">＋ Submit a problem</button>');
+    $('#problem-list').innerHTML=items.length?`<div class="problem-table">${items.map((p:any)=>`<div class="review-row"><a class="problem-row" href="#/${scope==='published'?'probleme':'editer'}/${p.id}"><span class="problem-name"><strong>${esc(titleOf(p))}</strong><small>${esc(categories[p.category])} <span>·</span> ${esc(p.source)} ${scope!=='published'?`<span>·</span> ${esc(p.author)}`:''}</small></span><span class="level-label">Level ${p.difficulty}</span>${langSquares(p)}<span class="status ${scope==='published'?p.progress:p.state}">${scope==='published'?progress[p.progress]:statuses[p.state]}</span><span class="row-arrow">↗</span></a>${scope==='review'?referenceLinks(p):''}</div>`).join('')}</div>`:listing.total?empty('No results','Try different filters.','<button class="button secondary" data-action="reset-filters">Clear filters</button>'):empty(scope==='published'?'No published problems':'No submissions',scope==='published'?'':'','<button class="button" data-action="new">＋ Submit a problem</button>');
     if(pages>1)$('#problem-list').insertAdjacentHTML('beforeend',`<nav class="pagination" aria-label="Problem list pages"><button class="button secondary small" data-action="previous-page" ${listPage===1?'disabled':''}>← Previous</button><span>Page ${listPage} of ${pages}</span><button class="button secondary small" data-action="next-page" ${listPage===pages?'disabled':''}>Next →</button></nav>`);
 }
 async function progressPage() {
@@ -174,6 +190,7 @@ function showEditor() {
     ${p.hasPublished?`<div class="notice soft">A version is published. Changes stay private until you publish again. <a href="#/probleme/${p.id}">View published version →</a></div>`:''}
     ${p.reviewNote&&!session.user.admin?`<div class="notice soft"><strong>Administrator’s note</strong><p>${esc(p.reviewNote)}</p></div>`:''}
     ${notice()}<div class="editor-meta"><label for="edit-category">Category<select id="edit-category">${Object.entries(categories).map(([key,label])=>option(key,label,p.category)).join('')}</select></label><label for="edit-difficulty">Difficulty<select id="edit-difficulty">${[1,2,3,4,5].map(n=>option(String(n),`${n} — ${['Introductory','Easy','Intermediate','Hard','Very hard'][n-1]}`,String(p.difficulty))).join('')}</select></label><label for="edit-source">Source<input id="edit-source" list="sources" value="${esc(p.source)}" maxlength="160"><datalist id="sources">${[...session.sources,'Community'].map((s:string)=>`<option value="${esc(s)}">`).join('')}</datalist></label><label for="keywords">Keywords<input id="keywords" value="${esc(p.keywords.join(', '))}" placeholder="probability, integers…"><span class="field-help">Separate with commas.</span></label></div>
+    ${referenceLinks(p,true)}
     ${p.legacy?`<details class="source-details"><summary>Original source details</summary><p>${p.legacy.sources.map((s:any)=>`${esc(s.title)} · Problem ${esc(s.number)} · PDF page ${s.page}`).join('<br>')}</p><p class="muted">${esc(p.legacy.note)}</p><a class="text-link" href="${esc(p.legacy.reviewUrl)}" target="_blank" rel="noopener">Open original review & reference PDF ↗</a></details>`:''}
     <section class="editor-panel"><div class="editor-toolbar"><div class="segmented language-tabs" role="group" aria-label="Edit language version">${Object.entries(p.versions).map(([key,version])=>`<button data-editor-lang="${key}" aria-pressed="${key===editorLanguage}">${esc(languageName(key,version))} ${p.versions[key].approved?'✓':''}</button>`).join('')}</div><label class="import-button" for="tex-file">Import .tex ↗<input type="file" id="tex-file" accept=".tex,text/plain"></label></div>
     <div class="language-management"><details id="add-language"><summary>＋ Add a language</summary><form id="add-language-form"><label for="new-language">Language<input id="new-language" list="language-names" maxlength="60" required placeholder="Choose or type a language"></label><button class="button small" type="submit">Add language</button></form></details>${Object.keys(p.versions).length>1?'<button class="text-link danger" data-action="remove-language">Remove this version</button>':''}</div>
@@ -226,12 +243,12 @@ function privacy(){shell(`${intro('Privacy & contributions')}<article class="pan
 async function mailbox(){if(!session.user?.admin||!session.local){routeTo('/');return;}const mail=await api('mailbox');shell(`${intro('Test inbox')}<div class="mailbox">${mail.length?mail.map((m:any)=>`<article class="panel"><p class="small muted">${esc(String(m.to))} · ${date(m.date)}</p><h2>${esc(m.subject)}</h2><pre>${esc(m.message).replace(/https?:\/\/[^\s<&]+/g,(url:string)=>`<a href="${url}" target="_blank" rel="noopener">${url}</a>`)}</pre></article>`).join(''):empty('No emails yet','Confirmation emails for test accounts appear here.')}</div>`);}
 async function route(){
     const current=location.hash||'#/';if(dirty&&current!==lastRoute&&!confirm('Leave without saving your changes?')){history.replaceState(null,'',lastRoute);return;}
-    lastRoute=current;dirty=false;routeSequence++;const [path,query]=current.replace(/^#/,'').split('?');const parts=path.split('/').filter(Boolean);const page=parts[0]||'';document.title='Le Problème du Jour';window.scrollTo(0,0);
+    disposeReference?.();disposeReference=undefined;lastRoute=current;dirty=false;routeSequence++;const [path,query]=current.replace(/^#/,'').split('?');const parts=path.split('/').filter(Boolean);const page=parts[0]||'';document.title='Le Problème du Jour';window.scrollTo(0,0);
     try{if(!session)session=await api('session');
         if(['connexion','inscription','mot-de-passe','renvoyer','reinitialiser','confirmer'].includes(page))auth(page,new URLSearchParams(query));
         else if(page==='mes-propositions'){filters.status='';filters.progress='';await collection('mine');}
         else if(page==='administration'){filters.status='';filters.progress='';await collection('review');}
-        else if(page==='about')about();else if(page==='progress')await progressPage();else if(page==='problems'){filters.status='';await collection();}
+        else if(page==='reference')await referencePage(parts[1],new URLSearchParams(query));else if(page==='about')about();else if(page==='progress')await progressPage();else if(page==='problems'){filters.status='';await collection();}
         else if(page==='probleme')await reader(parts[1],new URLSearchParams(query).get('from')||'');else if(page==='editer')await editor(parts[1]);else if(page==='profil')profile();else if(page==='aide')help();else if(page==='confidentialite')privacy();else if(page==='courrier')await mailbox();else landing();
     }catch(error:any){shell(empty('Page unavailable',esc(error.message),'<a class="button" href="#/problems">Back to problems</a>'));}
 }

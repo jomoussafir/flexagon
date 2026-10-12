@@ -28,6 +28,7 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 - Personal Progress grids with solved/unsolved views, category/difficulty/source grouping,
   clickable cards, difficulty colours and group completion counts.
 - Per-member progression: unseen, bookmarked, attempted and solved.
+- Admin-only original PDF links in the review list and editor, with a page-aware PDF viewer.
 - Version history; editing a published problem leaves its approved snapshot online.
 - Profile images, opt-in new-publication email and account deletion.
 - A local WordPress runtime, private test mailbox, deployment ZIP packages and tests.

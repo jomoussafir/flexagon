@@ -9,7 +9,7 @@ version = json.loads((root / 'package.json').read_text())['version']
 out = root / 'dist'
 out.mkdir(exist_ok=True)
 theme = root / 'wordpress/themes/le-probleme-du-jour'
-for required in ('assets/app.js', 'assets/app.css', 'assets/katex/katex.min.css'):
+for required in ('assets/app.js', 'assets/app.css', 'assets/katex/katex.min.css', 'assets/pdfjs/pdf.mjs', 'assets/pdfjs/pdf.worker.mjs'):
     if not (theme / required).is_file():
         raise SystemExit('Run npm run build:web before packaging.')
 for kind, folder in (('plugin', root / 'wordpress/plugins/le-probleme-du-jour'), ('theme', theme)):

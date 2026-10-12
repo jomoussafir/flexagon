@@ -13,6 +13,7 @@ require_once __DIR__ . '/includes/accounts.php';
 require_once __DIR__ . '/includes/problems.php';
 require_once __DIR__ . '/includes/assets.php';
 require_once __DIR__ . '/includes/import.php';
+require_once __DIR__ . '/includes/references.php';
 
 function lpdj_activate() {
     add_role('lpdj_member', 'Member', ['read' => true]);
@@ -51,6 +52,7 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)', 'DELETE', 'lpdj_problem_delete');
     lpdj_route('/problems/(?P<id>\d+)/history', 'GET', 'lpdj_problem_history');
     lpdj_route('/problems/(?P<id>\d+)/progress', 'POST', 'lpdj_progress_save');
+    lpdj_route('/problems/(?P<id>\d+)/reference', 'GET', 'lpdj_problem_reference', 'lpdj_admin_permission');
     lpdj_route('/assets', 'POST', 'lpdj_asset_upload');
     lpdj_route('/mailbox', 'GET', function () { return array_reverse(get_option('_lpdj_local_mail', [])); }, function () {
         return lpdj_local() && lpdj_admin_permission() === true ? true : lpdj_error('Unavailable.', 404);

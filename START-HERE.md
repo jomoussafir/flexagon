@@ -22,7 +22,12 @@ details. Do not use these credentials on OVH.
 
 Open the account menu beside your name, then click **Admin review** to browse the imported scanned collection. Filter by source,
 category, difficulty or status; select a title to edit it. The list shows 50 problems
-per page. Imported problems are unpublished, even when a language was verified in
+per page. The **PDF · p. …** links under each problem open its original PDF at the
+recorded page in a new tab. The same links appear above the editor. Use **Back to
+problem** or **Admin review** in the viewer to return. Reference books are visible
+only to administrators.
+
+Imported problems are unpublished, even when a language was verified in
 the original site.
 
 To add a new problem:

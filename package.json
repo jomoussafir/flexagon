@@ -21,7 +21,8 @@
     "@wp-playground/cli": "^3.1.57",
     "esbuild": "^0.28.2",
     "katex": "^0.19.0",
-    "node": "^24.18.0"
+    "node": "^24.18.0",
+    "pdfjs-dist": "6.3.289"
   },
   "overrides": {
     "qs": "^6.16.0"

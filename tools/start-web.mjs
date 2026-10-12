@@ -15,6 +15,8 @@ try {
     if(response.ok&&data.local){console.log(`Website already running: ${localURL}`);if(!process.argv.includes('--no-open'))execFile('open',[localURL]);process.exit(0);}
 } catch {}
 const state=path.join(root,'.local');
+const referenceDir=path.join(root,'private-data/references');
+await mkdir(referenceDir,{recursive:true});
 await mkdir(path.join(state,'wordpress'),{recursive:true});
 let credentials;
 try{credentials=JSON.parse(await readFile(path.join(state,'admin.json'),'utf8'));}
@@ -30,8 +32,8 @@ try { await access(path.join(state,'wordpress/wp-load.php')); existingWordPress=
 const server=await runCLI({command:'server',port,wp:'7.1.3',php:'8.3',login:false,workers:6,
     wordpressInstallMode:existingWordPress?'install-from-existing-files-if-needed':'download-and-install',
     'site-url':`http://127.0.0.1:${port}`,
-    'mount-before-install':[{hostPath:path.join(state,'wordpress'),vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/plugins/le-probleme-du-jour'},{hostPath:path.join(root,'wordpress/themes/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/themes/le-probleme-du-jour'}],
-    blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,DISABLE_WP_CRON:false},steps:[{step:'runPHP',code:`<?php
+    'mount-before-install':[{hostPath:referenceDir,vfsPath:'/lpdj-references'},{hostPath:path.join(state,'wordpress'),vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/plugins/le-probleme-du-jour'},{hostPath:path.join(root,'wordpress/themes/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/themes/le-probleme-du-jour'}],
+    blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,LPDJ_REFERENCE_DIR:'/lpdj-references',DISABLE_WP_CRON:false},steps:[{step:'runPHP',code:`<?php
         require '/wordpress/wp-load.php';
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
         activate_plugin('le-probleme-du-jour/le-probleme-du-jour.php');

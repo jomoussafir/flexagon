@@ -45,8 +45,34 @@ Each recipient receives a separate message. Profile notification preferences pro
 the opt-out control.
 
 Exclude authenticated pages, `/wp-json/lpdj/*`, and the protected image action
-`admin-ajax.php?action=lpdj_asset` from CDN/page caching. The application also sends
+`admin-ajax.php?action=lpdj_asset` and `admin-ajax.php?action=lpdj_reference` from CDN/page caching. The application also sends
 private/no-store headers. Draft content must not be exposed through public caches.
+
+## Private reference PDFs
+
+Admin review has a reference-PDF link for every recorded source occurrence. These
+open the recorded PDF page in an administrator-only viewer, with page navigation,
+zoom, Open PDF and links back to Admin review/the problem editor. Large books retain
+their original page numbering across separate PDF parts. The native PDF download
+also requires an administrator session; ordinary members never receive reference links.
+
+The local launcher mounts `private-data/references` outside WordPress. It contains
+`manifest.json` and 103 existing PDF parts for 78 source entries. These files are
+excluded from Git and both deployment ZIPs. The collection's 1,863 occurrences all
+map to an existing file and page. The viewer code is included in the theme package.
+
+For OVH, copy the private reference directory to a directory **outside the web root**
+using your hosting file transfer, and add this line to the production `wp-config.php`
+with that directory's actual absolute path:
+
+```php
+define('LPDJ_REFERENCE_DIR', '/absolute/private/path/references');
+```
+
+Do not put reference books in WordPress Media/uploads, the theme, or a public static
+folder. Include this private directory in backups. Check PDF access with both an
+administrator and an ordinary member after deployment. If the library is not installed,
+the reference viewer reports that the PDF is unavailable instead of using a public copy.
 
 ## Data and next integrations
 
@@ -54,7 +80,7 @@ Production uses the host's standard WordPress MySQL database. The local preview 
 SQLite through the official WordPress Playground runtime. This implementation was
 tested locally; run the account/submission/publication checks again on OVH staging.
 
-The old problem collection is not imported yet. Follow `migration.md` to migrate the
-complete private review data as unpublished records. The existing native iPhone reader
+The local collection contains 1,854 imported, unpublished problems. Follow
+`migration.md` when moving the private review data to production. The existing native iPhone reader
 still requires member authentication and the new API integration. The public feed from
 the old app is intentionally not enabled in the community edition.

@@ -1,13 +1,26 @@
-# Website verification — 12 October 2026
+# Website verification — 13 October 2026
 
 ## Current website
+
+- Private reference links are present in Admin review and the problem editor.
+  All 1,863 recorded occurrences across 1,854 imports resolve to one existing PDF
+  part/page; the 103 copied PDFs (78 source entries) match the originals by SHA-256.
+- Five additional integration checks cover admin-only reference metadata/downloads,
+  split-PDF page mapping, missing pages/indices, traversal rejection and publication
+  excluding private reference metadata. Ordinary members and anonymous visitors
+  cannot download the PDFs even when the corresponding problem is published.
+- Browser checks opened Moscow Puzzles at PDF page 46 and Three Squares at its
+  recorded PDF page 138; verified Next/Problem page controls and the Colossal Book
+  transition from PDF page 140 to 141 (first page of the next part). The PDF viewer
+  rendered at 1280 px and 390 px with no horizontal document overflow or console errors.
+  Source links open in a new tab; the viewer links back to Admin review/the editor.
 
 - Landing-page follow-up: the icon now has “Le Problem du jour” beside it; both
   home and About show the manifesto without an About heading. Typography is smaller.
   The rebuilt theme was checked at 1280 px and 390 px, with no horizontal overflow.
 
 - WordPress 7.1.3 / PHP 8.3 running in the official local Playground runtime.
-- 43 isolated integration checks pass: email confirmation, cookie/nonces, member/admin
+- 48 isolated integration checks pass: email confirmation, cookie/nonces, member/admin
   permissions, private drafts and images, safe/unsafe SVG uploads, stale revision
   rejection, FR/EN publication, first Save & Publish approval preservation, published
   snapshot isolation, personal progress, revision history, return notes, profile
@@ -32,7 +45,7 @@
   the published reader. Desktop (1280 px) and narrow/mobile (390 px) layouts checked.
 - The original temporary browser-test problem was removed. The local admin collection
   now contains 1,854 unpublished imports (one long legacy record awaits sign-in),
-  plus one pre-existing local draft. The pre-existing draft was preserved.
+  plus local user drafts, which were preserved.
 - Import verification compares all 1,854 original records and both language versions,
   34 historical revisions and 3 figure assets; zero mismatches, zero publications.
 - Browser verification of the English admin workspace covered all source counts,
