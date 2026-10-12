@@ -46,7 +46,7 @@ async function api(path:string, data?:any, method?:string) {
 function shell(content:string, active='', minimal=false) {
     const user=session.user;
     root.innerHTML=`${session.local&&!minimal?`<div class="local-banner"><span class="local-dot"></span>Local preview · Emails stay on this Mac${user?.admin?'<a href="#/courrier">Test inbox ↗</a>':''}</div>`:''}
-    <header class="header container simple-header"><a class="brand" href="#/" aria-label="Le Problème du Jour — Home" title="Le Problème du Jour"><img src="${cfg.logo}" alt="" width="52" height="52"></a>
+    <header class="header container simple-header"><a class="brand" href="#/" aria-label="Le Problem du jour — Home" title="Le Problem du jour"><img src="${cfg.logo}" alt="" width="52" height="52"><span>Le Problem du jour</span></a>
     <nav aria-label="Main navigation"><a ${active==='about'?'aria-current="page"':''} href="#/about">About</a><a ${active==='collection'?'aria-current="page"':''} href="#/problems">Problem</a>${user?`<a ${active==='progress'?'aria-current="page"':''} href="#/progress">Progress</a><button class="button small" data-action="new">Submit a problem</button><details class="account-menu"><summary aria-label="Account menu">${esc(user.pseudo)} <span aria-hidden="true">⌄</span></summary><div><a href="#/mes-propositions">My submissions</a>${user.admin?'<a href="#/administration">Admin review</a>':''}<a href="#/profil">My profile</a><button data-action="logout">Sign out</button></div></details>`:`<a href="#/connexion">Sign In</a><a class="button small" href="#/inscription">Create Account</a>`}</nav></header>
     <main id="main" class="container ${minimal?'landing':active==='progress'?'progress-page':''}" tabindex="-1">${content}</main>
     ${minimal?'':`<footer class="footer container"><span>Le Problème du Jour</span><a href="#/aide">LaTeX & figures</a><a href="#/confidentialite">Privacy & contributions</a></footer>`}`;
@@ -57,8 +57,8 @@ function field(id:string,label:string,type='text',extra='') { return `<label for
 function langSquares(p:any) { const entries=Object.entries(p.versions);return `<span class="language-squares" aria-label="Language versions">${entries.slice(0,3).map(([key,v]:any)=>`<span class="lang-square level-${p.difficulty} ${v.title?'':'absent'}" aria-label="${esc(languageName(key,v))}: ${v.approved?'verified':'not verified'}" title="${esc(languageName(key,v))} · ${v.approved?'verified':'not verified'} · level ${p.difficulty}">${esc(languageCode(key,v).toUpperCase())}${v.approved?'<b aria-hidden="true">✓</b>':''}</span>`).join('')}${entries.length>3?`<span class="small" title="${esc(entries.slice(3).map(([k,v])=>languageName(k,v)).join(', '))}">+${entries.length-3}</span>`:''}</span>`; }
 function sourceOrder(a:string,b:string) { const names=session.sources;const x=names.indexOf(a),y=names.indexOf(b);return (x<0?99:x)-(y<0?99:y)||a.localeCompare(b,'en'); }
 function empty(title:string,text:string,button='') { return `<div class="empty"><div class="empty-symbol" aria-hidden="true">∅</div><h2>${title}</h2><p>${text}</p>${button}</div>`; }
-function landing() { shell('', 'home', true); }
-function about() { shell(`${intro('About')}<article class="manifesto"><p>Curated list of mathematical puzzles</p></article>`, 'about'); }
+function landing() { about(); }
+function about() { shell('<article class="manifesto"><p>Curated list of mathematical puzzles</p></article>', 'about', true); }
 function gated(section='Problems', destination='/problems') {
     shell(intro(section)+empty('Sign in to continue','',`<a class="button" href="#/connexion?next=${encodeURIComponent(destination)}">Sign In</a> <a class="button secondary" href="#/inscription">Create Account</a>`),section==='Progress'?'progress':'collection');
 }

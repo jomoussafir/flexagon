@@ -2,6 +2,10 @@
 
 ## Current website
 
+- Landing-page follow-up: the icon now has “Le Problem du jour” beside it; both
+  home and About show the manifesto without an About heading. Typography is smaller.
+  The rebuilt theme was checked at 1280 px and 390 px, with no horizontal overflow.
+
 - WordPress 7.1.3 / PHP 8.3 running in the official local Playground runtime.
 - 43 isolated integration checks pass: email confirmation, cookie/nonces, member/admin
   permissions, private drafts and images, safe/unsafe SVG uploads, stale revision

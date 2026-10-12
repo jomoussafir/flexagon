@@ -38,8 +38,9 @@ not automatically publish. Both mobile clients use exactly the published version
 available to signed-in website members. Retain the existing app logo with a white
 exterior, source grouping/order, five mathematical categories and progress choices.
 
-The landing page has only the icon and About, Problem, Sign In and Create Account
-links. About contains “Curated list of mathematical puzzles”. Problem opens the selection
+The landing page opens About with the text “Curated list of mathematical puzzles”,
+without a repeated About heading. Its banner shows the icon, “Le Problem du jour”,
+and About, Problem, Sign In and Create Account links. Problem opens the selection
 page after sign-in. Members also see Submit a problem, Progress and an account menu.
 Progress defaults to solved problems, with unsolved/all options; search and filters by
 category, difficulty or source combine with grouping by the same fields. Clickable cards

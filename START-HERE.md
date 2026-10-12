@@ -41,8 +41,9 @@ The **Admin review** page shows submitted problems and their language approval s
 
 ## Navigation and personal progress
 
-The home page contains only the icon and navigation banner. **About** opens the
-manifesto, and **Problem** opens the published problem selector after sign-in.
+The home page opens **About**, displaying “Curated list of mathematical puzzles”
+without an extra heading. The banner shows the icon and “Le Problem du jour”.
+**Problem** opens the published problem selector after sign-in.
 **Sign In** and **Create Account** are shown to visitors. Members also see
 **Progress**, **Submit a problem**, and their account menu.
 
