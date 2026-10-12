@@ -38,9 +38,9 @@ const server=await runCLI({command:'server',port,wp:'7.1.3',php:'8.3',login:fals
         switch_theme('le-probleme-du-jour');
         if (!get_option('_lpdj_local_setup')) {
             $user = get_user_by('login', 'admin');
-            if ($user) wp_update_user(['ID'=>$user->ID,'user_email'=>${phpString(credentials.email)},'user_pass'=>${phpString(credentials.password)},'display_name'=>'Administrateur']);
+            if ($user) wp_update_user(['ID'=>$user->ID,'user_email'=>${phpString(credentials.email)},'user_pass'=>${phpString(credentials.password)},'display_name'=>'Administrator']);
             update_option('blogname', 'Le Problème du Jour');
-            update_option('blogdescription', 'La communauté mathématique');
+            update_option('blogdescription', '');
             update_option('permalink_structure', '/%postname%/');
             update_option('blog_public', 0);
             update_option('_lpdj_local_setup', 1);

@@ -12,9 +12,10 @@ define('LPDJ_VERSION', '0.2.0');
 require_once __DIR__ . '/includes/accounts.php';
 require_once __DIR__ . '/includes/problems.php';
 require_once __DIR__ . '/includes/assets.php';
+require_once __DIR__ . '/includes/import.php';
 
 function lpdj_activate() {
-    add_role('lpdj_member', 'Membre', ['read' => true]);
+    add_role('lpdj_member', 'Member', ['read' => true]);
     update_option('users_can_register', 0); // Registration goes through email verification below.
 }
 register_activation_hook(__FILE__, 'lpdj_activate');
@@ -28,9 +29,9 @@ function lpdj_error($message, $status = 400) { return new WP_Error('lpdj_error',
 function lpdj_admin() { return current_user_can('manage_options'); }
 function lpdj_member() {
     return is_user_logged_in() && get_user_meta(get_current_user_id(), '_lpdj_verification', true) !== 'pending'
-        ? true : lpdj_error('Connectez-vous avec une adresse e-mail confirmée.', 401);
+        ? true : lpdj_error('Sign in with a confirmed email address.', 401);
 }
-function lpdj_admin_permission() { return lpdj_member() === true && lpdj_admin() ? true : lpdj_error('Accès réservé aux administrateurs.', 403); }
+function lpdj_admin_permission() { return lpdj_member() === true && lpdj_admin() ? true : lpdj_error('Administrator access required.', 403); }
 function lpdj_local() { return defined('LPDJ_LOCAL_PREVIEW') && LPDJ_LOCAL_PREVIEW && wp_get_environment_type() === 'local'; }
 function lpdj_route($path, $methods, $callback, $permission = 'lpdj_member') {
     register_rest_route('lpdj/v1', $path, ['methods' => $methods, 'callback' => $callback, 'permission_callback' => $permission]);
@@ -52,7 +53,7 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)/progress', 'POST', 'lpdj_progress_save');
     lpdj_route('/assets', 'POST', 'lpdj_asset_upload');
     lpdj_route('/mailbox', 'GET', function () { return array_reverse(get_option('_lpdj_local_mail', [])); }, function () {
-        return lpdj_local() && lpdj_admin_permission() === true ? true : lpdj_error('Indisponible.', 404);
+        return lpdj_local() && lpdj_admin_permission() === true ? true : lpdj_error('Unavailable.', 404);
     });
 });
 // Member responses and email links must never be stored in a shared cache.
@@ -68,7 +69,7 @@ add_action('admin_init', function () {
 });
 add_filter('show_admin_bar', '__return_false');
 add_action('admin_menu', function () {
-    add_menu_page('Le Problème du Jour', 'Problèmes', 'manage_options', 'lpdj', function () {
-        echo '<div class="wrap"><h1>Le Problème du Jour</h1><p><a class="button button-primary" href="' . esc_url(home_url('/#/administration')) . '">Ouvrir la validation</a></p></div>';
+    add_menu_page('Le Problème du Jour', 'Problems', 'manage_options', 'lpdj', function () {
+        echo '<div class="wrap"><h1>Le Problème du Jour</h1><p><a class="button button-primary" href="' . esc_url(home_url('/#/administration')) . '">Open admin review</a></p></div>';
     }, 'dashicons-welcome-learn-more');
 });

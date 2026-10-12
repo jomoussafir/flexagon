@@ -18,7 +18,7 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 
 ## Implemented website
 
-- WordPress email/password accounts, pseudonyms, email confirmation, password reset.
+- English interface with WordPress email/password accounts, display names, email confirmation and password reset.
 - Member-only catalogue; private drafts, submissions and admin review.
 - French and English versions, independent approval and publication.
 - LaTeX editor/import, live preview, protected SVG/PNG/JPEG figures with
@@ -29,8 +29,9 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 - Profile images, opt-in new-publication email and account deletion.
 - A local WordPress runtime, private test mailbox, deployment ZIP packages and tests.
 
-The catalogue starts empty. The previous app/site and their database are separate.
-OVH deployment, production mail configuration, import of the old collection and
+The local admin collection contains 1,854 imported problems, all unpublished. One long
+record (A Map-Coloring Game) awaits a complete authenticated export; see docs/migration.md.
+The previous app/site are unchanged. OVH deployment, production mail configuration and
 native app authentication/integration remain separate next steps. There is no
 GitHub remote yet.
 
