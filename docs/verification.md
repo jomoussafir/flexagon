@@ -102,3 +102,19 @@ submissions opens directly on Your problems, with no separate page heading, top
 summary counter or source count chips. The filtered submission count remains beside
 the list controls. The shared website screens give the connected Debug app the same
 layout on reload.
+
+## Vibrant palette — 13 October 2026
+
+- Website build and deployment ZIP packaging succeed; `git diff --check` passes.
+- Desktop Problem page checked at 1280 × 900, mobile Progress and problem reader
+  at 390 × 844. No horizontal overflow; compact controls and difficulty labels
+  remain visible. Browser viewport override reset after verification.
+- Body, muted text, action buttons, active navigation, links, placeholder text,
+  coloured statistics and all five difficulty text/background pairs exceed a
+  4.5:1 contrast ratio (lowest checked pair 4.79:1).
+- Debug iOS simulator build succeeds. Installed and opened on iPhone 17 Pro / iOS 26;
+  the website header, About panel, background and native navigation bar show the
+  matching palette. No physical iPhone colour check was performed.
+- Screenshots saved under the ignored `private-data/verification/` directory as
+  `vibrant-palette-desktop.jpg`, `vibrant-palette-mobile.jpg` and
+  `vibrant-palette-iphone.png`. No problem or publication data was changed.

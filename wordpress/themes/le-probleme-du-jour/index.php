@@ -3,7 +3,7 @@
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f7f6f2">
+    <meta name="theme-color" content="#ffd437">
     <meta name="description" content="Read, submit and review mathematical problems.">
     <link rel="icon" href="<?php echo esc_url(get_template_directory_uri() . '/assets/favicon.png'); ?>">
     <link rel="apple-touch-icon" href="<?php echo esc_url(get_template_directory_uri() . '/assets/logo.png'); ?>">

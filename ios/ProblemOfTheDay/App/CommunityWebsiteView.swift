@@ -59,7 +59,7 @@ final class CommunityWebsiteModel: NSObject, ObservableObject, WKNavigationDeleg
         webView.allowsBackForwardNavigationGestures = true
         webView.accessibilityIdentifier = "community-website"
         webView.isOpaque = false
-        webView.backgroundColor = UIColor(red: 0.98, green: 0.97, blue: 0.95, alpha: 1)
+        webView.backgroundColor = UIColor(red: 1, green: 0.965, blue: 0.894, alpha: 1)
         backObservation = webView.observe(\.canGoBack, options: [.new]) { [weak self] _, change in
             Task { @MainActor in self?.canGoBack = change.newValue ?? false }
         }
@@ -182,9 +182,9 @@ private struct ConnectedCommunityWebsite: View {
                 Spacer()
                 Button(action: model.reload) { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }
                     .accessibilityLabel("Reload website")
-            }.padding(.horizontal, 20).background(.bar)
+            }.padding(.horizontal, 20).background(Color(red: 1, green: 0.965, blue: 0.894))
         }
-        .tint(Color(red: 0.34, green: 0.28, blue: 0.65))
+        .tint(Color(red: 0.09, green: 0.263, blue: 0.773))
         .preferredColorScheme(.light)
         .alert(item: $model.dialog) { dialog in
             if dialog.confirmation {
