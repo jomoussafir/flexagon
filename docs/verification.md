@@ -118,3 +118,20 @@ layout on reload.
 - Screenshots saved under the ignored `private-data/verification/` directory as
   `vibrant-palette-desktop.jpg`, `vibrant-palette-mobile.jpg` and
   `vibrant-palette-iphone.png`. No problem or publication data was changed.
+
+## Saved Basquiat and Vermeer trial — 13 October 2026
+
+- The saved `palettes/basquiat.css` was compared byte-for-byte with the previously
+  committed active stylesheet; it matches exactly. Both native colour presets
+  are retained in the Debug client.
+- Website build, deployment package generation and Debug simulator build succeed.
+- Desktop collection checked at 1280 × 900; mobile Progress and reader at 390 × 844.
+  No horizontal overflow. The header menu retains dark text on its light popup.
+- Checked text/background pairs exceed 4.5:1: body, muted text, header navigation,
+  active navigation, both primary button styles, links, coloured statistics,
+  placeholders and all five difficulty levels. Lowest checked contrast: 5.27:1.
+- Updated build installed and opened on iPhone 17 Pro / iOS 26 simulator. The
+  blue/ochre header, ivory page and native blue navigation controls are visible.
+- Screenshots: `private-data/verification/vermeer-palette-desktop.jpg`,
+  `vermeer-palette-mobile.jpg`, `vermeer-palette-iphone.png` (ignored by Git).
+- Only presentation changed. No problem, progress or publication data was changed.

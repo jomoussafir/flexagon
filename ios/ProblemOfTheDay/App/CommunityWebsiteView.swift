@@ -31,6 +31,25 @@ enum CommunityWebsiteConfiguration {
     }
 }
 
+/// Keep the native controls in step with the selected website palette.
+private enum CommunityWebsitePalette {
+    case basquiat, vermeer
+    static let current: Self = .vermeer
+
+    var background: UIColor {
+        switch self {
+        case .basquiat: UIColor(red: 1, green: 246.0 / 255, blue: 228.0 / 255, alpha: 1)
+        case .vermeer: UIColor(red: 246.0 / 255, green: 240.0 / 255, blue: 227.0 / 255, alpha: 1)
+        }
+    }
+    var accent: Color {
+        switch self {
+        case .basquiat: Color(red: 23.0 / 255, green: 67.0 / 255, blue: 197.0 / 255)
+        case .vermeer: Color(red: 40.0 / 255, green: 81.0 / 255, blue: 138.0 / 255)
+        }
+    }
+}
+
 @MainActor
 final class CommunityWebsiteModel: NSObject, ObservableObject, WKNavigationDelegate, WKUIDelegate {
     struct Dialog: Identifiable {
@@ -59,7 +78,7 @@ final class CommunityWebsiteModel: NSObject, ObservableObject, WKNavigationDeleg
         webView.allowsBackForwardNavigationGestures = true
         webView.accessibilityIdentifier = "community-website"
         webView.isOpaque = false
-        webView.backgroundColor = UIColor(red: 1, green: 0.965, blue: 0.894, alpha: 1)
+        webView.backgroundColor = CommunityWebsitePalette.current.background
         backObservation = webView.observe(\.canGoBack, options: [.new]) { [weak self] _, change in
             Task { @MainActor in self?.canGoBack = change.newValue ?? false }
         }
@@ -182,9 +201,9 @@ private struct ConnectedCommunityWebsite: View {
                 Spacer()
                 Button(action: model.reload) { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }
                     .accessibilityLabel("Reload website")
-            }.padding(.horizontal, 20).background(Color(red: 1, green: 0.965, blue: 0.894))
+            }.padding(.horizontal, 20).background(Color(uiColor: CommunityWebsitePalette.current.background))
         }
-        .tint(Color(red: 0.09, green: 0.263, blue: 0.773))
+        .tint(CommunityWebsitePalette.current.accent)
         .preferredColorScheme(.light)
         .alert(item: $model.dialog) { dialog in
             if dialog.confirmation {
