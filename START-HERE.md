@@ -75,6 +75,16 @@ must be configured and tested before registration is opened to users.
 
 ## What this does not launch
 
-This launches WordPress on this Mac. It does not publish a public website, connect the
-iPhone app, or copy this local database to OVH. Installation packages and the OVH
+This launches WordPress on this Mac. It does not publish a public website or copy
+this local database to OVH. Installation packages and the OVH
 steps are in [docs/ovh-setup.md](docs/ovh-setup.md).
+
+## Test in the iPhone simulator
+
+Keep the website running, open **ios/ProblemOfTheDay.xcodeproj** in Xcode, choose an
+iPhone simulator and click Run (Debug configuration). The community app opens this
+same website. Sign in with the same local account; the Problem tab shows the same
+published collection. Use the bottom Back, Home and Reload buttons for navigation.
+
+This connection is for the simulator on this Mac. Testing on a physical iPhone
+requires a reachable website address; the Mac-local address cannot work there.

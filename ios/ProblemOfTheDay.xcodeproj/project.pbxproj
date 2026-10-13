@@ -16,6 +16,8 @@
 		79197A3FAFF0585F1C9469BD /* ProblemOfTheDay/App/ProblemOfTheDayApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3A264CC3349B93E2C23688 /* ProblemOfTheDay/App/ProblemOfTheDayApp.swift */; };
 		83DC97CDE67C936B2201AD1A /* ProblemOfTheDay/Content in Resources */ = {isa = PBXBuildFile; fileRef = 0189424A5A60FED329FA868E /* ProblemOfTheDay/Content */; };
 		C94C6FBEDAB4A813363130B8 /* ProblemOfTheDay/App/LibraryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B18F3AEE8B8DBB0F5E322D2 /* ProblemOfTheDay/App/LibraryViews.swift */; };
+		AABB00112233445566778802 /* CommunityWebsiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00112233445566778801 /* CommunityWebsiteView.swift */; };
+		AABB00112233445566778804 /* CommunityWebsiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00112233445566778803 /* CommunityWebsiteTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +42,8 @@
 		7D1043473D55BFA90E8530D3 /* ProblemOfTheDay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = ProblemOfTheDay.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		808CAF912765BC14B6E509D3 /* ProblemOfTheDay/Tests/CatalogueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemOfTheDay/Tests/CatalogueTests.swift; sourceTree = "<group>"; };
 		B7480EC88B7F22D0A4757273 /* ProblemOfTheDayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = ProblemOfTheDayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AABB00112233445566778801 /* CommunityWebsiteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemOfTheDay/App/CommunityWebsiteView.swift; sourceTree = "<group>"; };
+		AABB00112233445566778803 /* CommunityWebsiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemOfTheDay/Tests/CommunityWebsiteTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +67,8 @@
 		B28B7AF69320201D1CF206EB = {
 			isa = PBXGroup;
 			children = (
+				AABB00112233445566778803 /* CommunityWebsiteTests.swift */,
+				AABB00112233445566778801 /* CommunityWebsiteView.swift */,
 				37FB823D442401CD5DBC967D /* ProblemOfTheDay/App/LibraryStore.swift */,
 				7B18F3AEE8B8DBB0F5E322D2 /* ProblemOfTheDay/App/LibraryViews.swift */,
 				1D3D6C9CB86527BB181BF125 /* ProblemOfTheDay/App/Models.swift */,
@@ -168,6 +174,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AABB00112233445566778804 /* CommunityWebsiteTests.swift in Sources */,
 				64E7CC0682960F465EEFBFE2 /* ProblemOfTheDay/Tests/CatalogueTests.swift in Sources */,
 				234A822606B2E6A22A4C0F6D /* ProblemOfTheDay/Tests/ReaderTests.swift in Sources */,
 			);
@@ -177,6 +184,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AABB00112233445566778802 /* CommunityWebsiteView.swift in Sources */,
 				509BCF8A231A26F06D5BAAA0 /* ProblemOfTheDay/App/LibraryStore.swift in Sources */,
 				C94C6FBEDAB4A813363130B8 /* ProblemOfTheDay/App/LibraryViews.swift in Sources */,
 				2DF84E6E5137C964F6C16D35 /* ProblemOfTheDay/App/Models.swift in Sources */,
@@ -282,6 +290,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 98W3R8V7TC;
 				ENABLE_TESTABILITY = YES;
+				INFOPLIST_FILE = "ProblemOfTheDay/Debug-Info.plist";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Le Problème Communauté";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

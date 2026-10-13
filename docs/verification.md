@@ -79,3 +79,26 @@ The copied iPhone app had a successful simulator Debug build in the initial foun
 step. Its bundle ID is isolated and its original public feed is unset. No native app
 code was changed during this website implementation and no iOS rebuild was needed.
 The historical files under ios describe the original app, not the new WordPress client.
+
+## Local iPhone connection — 13 October 2026
+
+- Debug iPhone app uses the local website in WKWebView with WordPress cookie sign-in.
+- 22 simulator tests pass with no failures or skips: 18 inherited reader checks,
+  3 URL/origin-policy checks and a real local WebKit/unauthorized-API smoke check.
+- The anonymous API still returns 401; no new public feed or permission bypass exists.
+- Native Back, Home and Reload controls and JavaScript confirmations are supported.
+- The local administrator signed in through the simulator, and a published problem
+  opened from WordPress; the app catalogue displayed the same 2 published problems.
+  No problem content or publication state was changed.
+- Mobile touch form text uses at least 16 px to avoid iPhone focus zoom; ordinary
+  page typography and desktop filter sizing stay unchanged.
+- Loopback HTTP exceptions and the embedded website are Debug-only. Release retains
+  the native foundation; physical-phone networking/production integration is pending.
+
+### Profile and submission layout
+
+The separate My profile page heading is removed; the profile panel remains. My
+submissions shows only its submission total, without source/difficulty statistics
+or source count chips. Its filtered results are labelled submissions. Browser
+verification confirmed one summary counter and no horizontal overflow; the shared
+website screens give the connected Debug app the same layout on reload.

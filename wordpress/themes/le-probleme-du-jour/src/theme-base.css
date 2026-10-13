@@ -33,3 +33,7 @@
 .progress-controls>div{min-width:0}.progress-status-options{display:flex;flex-wrap:wrap;gap:3px;max-width:100%}.progress-status-options button{white-space:nowrap}
 .progress-page .problem-grid{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:8px}.progress-page .problem-tile{min-height:94px;padding:10px;gap:6px;border-radius:6px}.progress-page .problem-tile>strong{font-size:15px;line-height:1.25;-webkit-line-clamp:2}.progress-page .tile-top{font-size:10px;gap:5px;flex-wrap:wrap}.progress-page .problem-tile>small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.progress-page .progress-group-heading{margin-bottom:10px}
 @media(max-width:720px){.progress-page .problem-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px}.progress-page .problem-tile{min-height:94px;padding:9px}.progress-page .progress-status-options button{font-size:11px;padding:8px 10px}}
+/* Keep iPhone form focus from zooming the entire page; pinch zoom stays available. */
+@media(max-width:720px) and (pointer:coarse){input:not([type=checkbox]):not([type=file]),select,textarea,.filters input[type=search],.filters select,.editor-meta input,.editor-meta select,.list-tools select{font-size:16px}}
+
+.profile-page{margin-top:32px}

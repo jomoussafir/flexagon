@@ -1,7 +1,7 @@
 # Le Problème du Jour
 
 One repository for the community edition: a WordPress website for OVH, the iPhone
-reader foundation and a future Android client. The original app logo is shared.
+reader foundation with a local website test client, and a future Android client. The original app logo is shared.
 
 ## Launch the website
 
@@ -36,7 +36,7 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 The local admin collection contains 1,854 imported problems, all unpublished. One long
 record (A Map-Coloring Game) awaits a complete authenticated export; see docs/migration.md.
 The previous app/site are unchanged. OVH deployment, production mail configuration and
-native app authentication/integration remain separate next steps. There is no
+production native app integration remain separate next steps. The Debug iPhone simulator app now opens the same local website; see [ios/README.md](ios/README.md). There is no
 GitHub remote yet.
 
 ## Layout
@@ -45,7 +45,7 @@ GitHub remote yet.
 | --- | --- |
 | `wordpress/plugins/le-probleme-du-jour` | Accounts, permissions, problem workflow, protected assets and REST API |
 | `wordpress/themes/le-probleme-du-jour` | Responsive community website |
-| `ios` | Copied SwiftUI reader, not yet connected to the member-only WordPress API |
+| `ios` | Debug website test client connected to local WordPress; inherited native reader retained for Release |
 | `android` | Reserved for a future Android app |
 | `shared/branding` | Original logo and favicon |
 | `shared/latex` | LaTeX/figure renderer and its regression tests |

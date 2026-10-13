@@ -6,6 +6,9 @@ struct ProblemOfTheDayApp: App {
     @StateObject private var store = LibraryStore()
     var body: some Scene {
         WindowGroup {
+            #if DEBUG
+            CommunityWebsiteView()
+            #else
             RootView()
                 .environmentObject(store)
                 .tint(Palette.teal)
@@ -13,6 +16,7 @@ struct ProblemOfTheDayApp: App {
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { Task { await store.refresh() } }
                 }
+            #endif
         }
     }
 }

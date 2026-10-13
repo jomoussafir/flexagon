@@ -1,6 +1,8 @@
 # iPhone and website parity check — 13 October 2026
 
-The community iPhone app does **not** yet match the WordPress website. It is the
+**Follow-up:** The Debug app now embeds the local WordPress website for simulator testing, using its normal sign-in and shared data. See [the iPhone testing guide](../ios/README.md). The findings below still describe the inherited native reader used by Release builds.
+
+At the time of this audit, the community iPhone app did **not** yet match the WordPress website. It is the
 copied reader foundation, with its old public catalogue address removed. Website
 work has not yet been integrated into this native client.
 
