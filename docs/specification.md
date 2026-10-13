@@ -42,9 +42,11 @@ The landing page opens About with the text “Curated list of mathematical puzzl
 without a repeated About heading. Its banner shows the icon, “Le Problem du jour”,
 and About, Problem, Sign In and Create Account links. Problem opens the selection
 page after sign-in. Members also see Submit a problem, Progress and an account menu.
-Progress defaults to solved problems, with unsolved/all options; search and filters by
+Progress defaults to solved problems, with All, Unseen, Bookmarked, Attempted, Solved
+and Unsolved filters; Unsolved combines the first three unfinished states. Search and filters by
 category, difficulty or source combine with grouping by the same fields. Clickable cards
-show title, numeric difficulty, status and source. Difficulty colours run from pale blue
+show title, numeric difficulty, status and source. Dense cards start at 152 px wide
+and 94 px high on desktop, with full titles/source information in tooltips. Difficulty colours run from pale blue
 to purple; group counts and bars show completion. Load 24 cards per group at a time.
 
 ## Status

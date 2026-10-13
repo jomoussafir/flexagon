@@ -35,3 +35,18 @@ test('Any language can supply the title; grouping does not mutate the catalogue'
     assert.deepEqual(samples,before);assert.equal(problemTitle(samples[1]),'Tres cuadrados');
     assert.equal(problemTitle(samples[4]),'Custom language title');
 });
+
+test('Every progress status filters independently, while Unsolved combines unfinished states',()=>{
+    for(const [mode,expected] of Object.entries({all:[1,2,3,4,5],unseen:[3],bookmarked:[2],attempted:[4],solved:[1,5],unsolved:[2,3,4]})) {
+        const result=view({mode});
+        assert.deepEqual(result.groups.flatMap(g=>g.items.map(p=>p.id)).sort(),expected,mode);
+        assert.equal(result.shown,expected.length,mode);
+        assert.equal(result.total,5,'Completion denominators stay independent of status');
+    }
+});
+test('Status combines with category, difficulty, source and search, including empty results',()=>{
+    const matching=view({mode:'bookmarked',category:'Geometry',difficulty:'5',source:'IMO',search:'cuadrados'});
+    assert.equal(matching.shown,1);assert.equal(matching.groups[0].items[0].id,2);
+    const empty=view({mode:'attempted',category:'Logic'});
+    assert.equal(empty.shown,0);assert.deepEqual(empty.groups,[]);assert.equal(empty.total,3);
+});

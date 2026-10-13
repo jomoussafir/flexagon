@@ -2,6 +2,12 @@
 
 ## Current website
 
+- Progress now offers All, Unseen, Bookmarked, Attempted, Solved and Unsolved.
+  Browser checks on disposable sample data verified each added status, empty results,
+  combined source filtering, 24-to-26-card expansion and card-to-reader navigation.
+  The compact grid fits seven columns at 1280 px and two at 390 px without document
+  overflow; no console errors. The user's catalogue and personal progress were untouched.
+
 - Private reference links are present in Admin review and the problem editor.
   All 1,863 recorded occurrences across 1,854 imports resolve to one existing PDF
   part/page; the 103 copied PDFs (78 source entries) match the originals by SHA-256.
@@ -29,8 +35,9 @@
 - Named-language checks cover submissions without English/French, custom identifiers,
   independent approval, private edits/removals, preserved history, label validation,
   member publication denial and current per-user progress in overview responses.
-- All 5 Progress model tests pass: solved/unsolved grouping, numeric difficulty and
-  source ordering, combined filters, translated-title searches and immutable inputs.
+- All 7 Progress model tests pass: solved/unsolved grouping, numeric difficulty and
+  source ordering, combined filters, translated-title searches and immutable inputs, each independent status filter,
+  combined metadata/status filters and filtered counts.
 - Browser verification on a separate disposable collection covered the four-link
   landing banner, About manifesto, member sign-in, Progress grouping/filtering,
   24-card pagination, card-to-reader navigation, language selection, marking solved

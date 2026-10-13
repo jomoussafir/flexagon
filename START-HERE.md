@@ -52,11 +52,12 @@ without an extra heading. The banner shows the icon and “Le Problem du jour”
 **Sign In** and **Create Account** are shown to visitors. Members also see
 **Progress**, **Submit a problem**, and their account menu.
 
-**Progress** starts with your solved problems. Switch to **Unsolved** or **All**,
+**Progress** starts with your solved problems. Filter by **Unseen**, **Bookmarked**,
+**Attempted**, **Solved**, **Unsolved** or **All**,
 and group the cards by category, difficulty or source. Search and filters can be
-combined. Each card shows its difficulty (1–5), title, source and status; its colour
+combined. Compact cards show the difficulty (1–5), title, source and status; their colour
 runs from pale blue to purple. Click a card to read it, then mark it **Solved**.
-The grid updates when you return. Each group shows a completion count and bar.
+The grid updates when you return. The **matching problems** count follows all active filters. Each group shows a completion count and bar.
 Large groups show 24 cards initially and have a **Show more** button.
 
 Unseen, bookmarked and attempted problems all count as unsolved. This view contains
