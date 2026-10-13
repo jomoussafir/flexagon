@@ -98,7 +98,7 @@ The historical files under ios describe the original app, not the new WordPress 
 ### Profile and submission layout
 
 The separate My profile page heading is removed; the profile panel remains. My
-submissions shows only its submission total, without source/difficulty statistics
-or source count chips. Its filtered results are labelled submissions. Browser
-verification confirmed one summary counter and no horizontal overflow; the shared
-website screens give the connected Debug app the same layout on reload.
+submissions opens directly on Your problems, with no separate page heading, top
+summary counter or source count chips. The filtered submission count remains beside
+the list controls. The shared website screens give the connected Debug app the same
+layout on reload.

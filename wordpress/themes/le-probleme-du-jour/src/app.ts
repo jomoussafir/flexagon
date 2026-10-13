@@ -69,12 +69,13 @@ async function collection(scope='published') {
     if(!session.user){gated();return;}
     if(scope==='review'&&!session.user.admin){shell(empty('Restricted access','This page is for administrators.'));return;}
     const seq=routeSequence;
-    shell(intro(scope==='published'?'Problems':scope==='mine'?'My submissions':'Admin review')+'<p class="loading">Loading…</p>',scope==='published'?'collection':scope==='mine'?'mine':'review');
+    const heading=scope==='mine'?'':intro(scope==='published'?'Problems':'Admin review');
+    shell(heading+'<p class="loading">Loading…</p>',scope==='published'?'collection':scope==='mine'?'mine':'review');
     listing=await api('problems?scope='+scope);if(seq!==routeSequence)return;listPage=1;
     const total=listing.published, pending=listing.items.filter((p:any)=>p.state==='submitted').length;
     const sourceCounts:Record<string,number> = scope==='published'?listing.sources:listing.items.reduce((counts:any,p:any)=>{counts[p.source]=(counts[p.source]||0)+1;return counts;},{});
-    shell(intro(scope==='published'?'Problems':scope==='mine'?'My submissions':'Admin review')+
-    `<section class="stats"><div><strong>${(scope==='published'?total:listing.total).toLocaleString('en-GB')}</strong><span>${scope==='published'?'published problems':'submissions'}</span></div>${scope!=='mine'?`<div><strong>${(scope==='review'?pending:Object.keys(listing.sources).length).toLocaleString('en-GB')}</strong><span>${scope==='review'?'awaiting review':'sources'}</span></div><div><strong>1–5</strong><span>difficulty levels</span></div>`:''}</section>
+    const summary=scope==='mine'?'':`<section class="stats"><div><strong>${(scope==='published'?total:listing.total).toLocaleString('en-GB')}</strong><span>${scope==='published'?'published problems':'submissions'}</span></div><div><strong>${(scope==='review'?pending:Object.keys(listing.sources).length).toLocaleString('en-GB')}</strong><span>${scope==='review'?'awaiting review':'sources'}</span></div><div><strong>1–5</strong><span>difficulty levels</span></div></section>`;
+    shell(heading+summary+`
     ${listing.total&&scope!=='mine'?`<div class="source-counts">${Object.entries(sourceCounts).sort(([a],[b])=>sourceOrder(a,b)).map(([s,c])=>`<button data-source="${esc(s)}">${esc(s)} <b>${c}</b></button>`).join('')}</div>`:''}
     <section class="collection"><div class="section-label"><h2>${scope==='published'?'Browse problems':scope==='mine'?'Your problems':'All submissions'}</h2>${scope==='published'?'<button class="text-link" data-action="pick">Pick one ↗</button>':''}</div>
     <div class="filters"><label class="search-label" for="search">Search<input id="search" type="search" placeholder="Title, keyword…" value="${esc(filters.search)}"></label>
