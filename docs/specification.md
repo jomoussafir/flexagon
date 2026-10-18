@@ -5,7 +5,7 @@
 One private GitHub repository for iOS, WordPress customisations, shared code/assets
 and a future Android client. OVH hosts the WordPress website. WordPress owns the
 accounts, problem database and publication workflow. Supabase is not required.
-The GitHub owner and remote URL have not yet been supplied.
+The private GitHub repository is https://github.com/jomoussafir/flexagon.
 
 ## Accounts and roles
 

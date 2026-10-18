@@ -36,8 +36,8 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 The local admin collection contains 1,854 imported problems, all unpublished. One long
 record (A Map-Coloring Game) awaits a complete authenticated export; see docs/migration.md.
 The previous app/site are unchanged. OVH deployment, production mail configuration and
-production native app integration remain separate next steps. The Debug iPhone simulator app now opens the same local website; see [ios/README.md](ios/README.md). There is no
-GitHub remote yet.
+production native app integration remain separate next steps. The Debug iPhone simulator app now opens the same local website; see [ios/README.md](ios/README.md). Source is
+hosted at https://github.com/jomoussafir/flexagon (branch `main`).
 
 ## Layout
 
