@@ -6,12 +6,12 @@ import shutil
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = {
     "logo.png": [
-        "ios/ProblemOfTheDay/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
-        "ios/ProblemOfTheDay/Assets.xcassets/BrandIcon.imageset/BrandIcon.png",
-        "wordpress/themes/le-probleme-du-jour/assets/logo.png",
+        "ios/Flexagon/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+        "ios/Flexagon/Assets.xcassets/BrandIcon.imageset/BrandIcon.png",
+        "wordpress/themes/flexagon/assets/logo.png",
     ],
-    "logo.svg": ["wordpress/themes/le-probleme-du-jour/assets/logo.svg"],
-    "favicon.png": ["wordpress/themes/le-probleme-du-jour/assets/favicon.png"],
+    "logo.svg": ["wordpress/themes/flexagon/assets/logo.svg"],
+    "favicon.png": ["wordpress/themes/flexagon/assets/favicon.png"],
 }
 
 def main():

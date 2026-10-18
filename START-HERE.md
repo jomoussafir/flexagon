@@ -1,12 +1,12 @@
 # Open the website
 
 Double-click **Open Website.command** in this folder. Keep its Terminal window open
-while using the website. The local site opens at **http://127.0.0.1:9400/**.
+while using the website. The local site opens at **http://127.0.0.1:9410/**.
 
 If macOS opens the shortcut as text, open Terminal, enter these two lines, then press Return:
 
 ```sh
-cd /Users/msfr/Documents/le-probleme-du-jour
+cd /Users/msfr/Documents/flexagon
 npm start
 ```
 
@@ -81,7 +81,7 @@ steps are in [docs/ovh-setup.md](docs/ovh-setup.md).
 
 ## Test in the iPhone simulator
 
-Keep the website running, open **ios/ProblemOfTheDay.xcodeproj** in Xcode, choose an
+Keep the website running, open **ios/Flexagon.xcodeproj** in Xcode, choose an
 iPhone simulator and click Run (Debug configuration). The community app opens this
 same website. Sign in with the same local account; the Problem tab shows the same
 published collection. Use the bottom Back, Home and Reload buttons for navigation.

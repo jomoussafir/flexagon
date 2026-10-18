@@ -1,4 +1,4 @@
-# Le Problème du Jour
+# Flexagon
 
 One repository for the community edition: a WordPress website for OVH, the iPhone
 reader foundation with a local website test client, and a future Android client. The original app logo is shared.
@@ -12,7 +12,7 @@ npm ci
 npm start
 ```
 
-Open **http://127.0.0.1:9400/**. Administrator credentials are in **Local access.txt**,
+Open **http://127.0.0.1:9410/**. Administrator credentials are in **Local access.txt**,
 created on launch and excluded from Git. Your database persists in `.local/wordpress`.
 See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 
@@ -43,8 +43,8 @@ GitHub remote yet.
 
 | Folder | Purpose |
 | --- | --- |
-| `wordpress/plugins/le-probleme-du-jour` | Accounts, permissions, problem workflow, protected assets and REST API |
-| `wordpress/themes/le-probleme-du-jour` | Responsive community website |
+| `wordpress/plugins/flexagon` | Accounts, permissions, problem workflow, protected assets and REST API |
+| `wordpress/themes/flexagon` | Responsive community website |
 | `ios` | Debug website test client connected to local WordPress; inherited native reader retained for Release |
 | `android` | Reserved for a future Android app |
 | `shared/branding` | Original logo and favicon |
@@ -70,7 +70,7 @@ npm run package:web
 ```
 
 `npm run test:web` creates a disposable database on port 9401. It never uses the
-preview database on port 9400. The local server binds only to 127.0.0.1.
+preview database on port 9410. The local server binds only to 127.0.0.1.
 
 Do not commit `.local`, credentials, database exports, private reference books,
 uploaded content or WordPress core. The website packages contain only the custom

@@ -38,12 +38,12 @@ is also preserved in commit `bf598ab`.
 
 ## Selecting a saved theme
 
-1. In `wordpress/themes/le-probleme-du-jour/src/theme-palette.css`, import
+1. In `wordpress/themes/flexagon/src/theme-palette.css`, import
    `./palettes/vermeer.css` or `./palettes/basquiat.css`.
 2. Match the theme-colour metadata in the theme’s `index.php` to its header:
    Vermeer `#233e68`, Basquiat `#ffd437`.
 3. Set `CommunityWebsitePalette.current` in
-   `ios/ProblemOfTheDay/App/CommunityWebsiteView.swift` to `.vermeer` or `.basquiat`.
+   `ios/Flexagon/App/CommunityWebsiteView.swift` to `.vermeer` or `.basquiat`.
 4. Run `npm run build:web` and `npm run package:web`, then rebuild the Debug iPhone
    app when changing its native controls.
 

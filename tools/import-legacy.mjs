@@ -20,7 +20,7 @@ Server.prototype.listen=function(...args){if(typeof args[0]==='number')return li
 const server=await runCLI({command:'server',port:9402,wp:'7.1.3',php:'8.3',workers:6,login:false,
     wordpressInstallMode:'install-from-existing-files-if-needed',
     'site-url':'http://127.0.0.1:9400',
-    'mount-before-install':[{hostPath:state,vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/le-probleme-du-jour'),vfsPath:'/wordpress/wp-content/plugins/le-probleme-du-jour'},{hostPath:path.dirname(filename),vfsPath:'/legacy-import'}],
+    'mount-before-install':[{hostPath:state,vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/flexagon'),vfsPath:'/wordpress/wp-content/plugins/flexagon'},{hostPath:path.dirname(filename),vfsPath:'/legacy-import'}],
     blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,DISABLE_WP_CRON:true},steps:[]}});
 try {
     const ids={};let skipped=0;

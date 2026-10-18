@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {progressGroups,problemTitle} from '../wordpress/themes/le-probleme-du-jour/src/progress.ts';
+import {progressGroups,problemTitle} from '../wordpress/themes/flexagon/src/progress.ts';
 
 const defaults={groupBy:'category',mode:'solved',search:'',category:'',difficulty:'',source:''};
 const samples=[

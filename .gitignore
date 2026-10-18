@@ -41,9 +41,9 @@ wordpress/wp-content/uploads/
 wordpress/wp-content/cache/
 
 .local/
-wordpress/themes/le-probleme-du-jour/assets/app.js
-wordpress/themes/le-probleme-du-jour/assets/app.css
-wordpress/themes/le-probleme-du-jour/assets/katex/
+wordpress/themes/flexagon/assets/app.js
+wordpress/themes/flexagon/assets/app.css
+wordpress/themes/flexagon/assets/katex/
 Local access.txt
 
-wordpress/themes/le-probleme-du-jour/assets/pdfjs/
+wordpress/themes/flexagon/assets/pdfjs/

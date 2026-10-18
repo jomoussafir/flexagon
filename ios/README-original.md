@@ -5,7 +5,7 @@
 # Le Problème — iPhone app
 
 Native SwiftUI app for iPhone and iPad, iOS 17 or later. Open
-`ProblemOfTheDay.xcodeproj` and select the **ProblemOfTheDay** scheme.
+`Flexagon.xcodeproj` and select the **Flexagon** scheme.
 
 ## Included
 
@@ -24,8 +24,8 @@ independent human mathematical review still pending. Hints and solutions are not
 
 ## Run in the simulator
 
-1. Open `ProblemOfTheDay.xcodeproj` in Xcode.
-2. Select the **ProblemOfTheDay** scheme and an iPhone simulator.
+1. Open `Flexagon.xcodeproj` in Xcode.
+2. Select the **Flexagon** scheme and an iPhone simulator.
 3. Press **⌘R**. No Apple developer account is needed for the simulator.
 
 This machine's default developer tools point to Command Line Tools. The shell commands
@@ -33,7 +33,7 @@ below use `DEVELOPER_DIR` only for this command and do not change system configu
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
-  xcodebuild -project ios/ProblemOfTheDay.xcodeproj -scheme ProblemOfTheDay \
+  xcodebuild -project ios/Flexagon.xcodeproj -scheme Flexagon \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0' \
   -derivedDataPath /private/tmp/leprobleme-ios-build CODE_SIGNING_ALLOWED=NO build
 ```
@@ -74,7 +74,7 @@ packaged in the mobile catalogue.
 node scripts/export_ios.cjs
 ```
 
-KaTeX is vendored under `ProblemOfTheDay/Content/Reading/katex/`, including its MIT license.
+KaTeX is vendored under `Flexagon/Content/Reading/katex/`, including its MIT license.
 The JS file is used by the build-time exporter; it is not executed by reader documents.
 Project settings can be regenerated with `python3 scripts/make_xcode_project.py`.
 Avoid regenerating over manual signing changes without recording those changes first.

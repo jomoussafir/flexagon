@@ -6,8 +6,8 @@ At the time of this audit, the community iPhone app did **not** yet match the Wo
 copied reader foundation, with its old public catalogue address removed. Website
 work has not yet been integrated into this native client.
 
-Scope: `ios/ProblemOfTheDay.xcodeproj` in this repository. The original project in
-`Documents/ChatGPT/Le Problème du Jour` was not changed. This is a comparison and
+Scope: `ios/Flexagon.xcodeproj` in this repository. The original project in
+`Documents/ChatGPT/Flexagon` was not changed. This is a comparison and
 build/test verification; it does not implement the missing integration.
 
 ## Findings
@@ -29,10 +29,10 @@ build/test verification; it does not implement the missing integration.
 | Mathematics and figures | Shared LaTeX renderer and protected assets | Older offline HTML reader; no authenticated transport for website figures |
 | Profile and notification preferences | Available in member profile | Not implemented |
 
-Evidence: `ios/ProblemOfTheDay/App/LibraryStore.swift` (legacy catalogue loading and
+Evidence: `ios/Flexagon/App/LibraryStore.swift` (legacy catalogue loading and
 local progress), `LibraryViews.swift` (navigation and saved lists), `Models.swift`
 (EN/FR-only catalogue validation), and `ProblemDetailView.swift` (offline reader).
-Compare `wordpress/themes/le-probleme-du-jour/src/app.ts` and `shared/api/README.md`.
+Compare `wordpress/themes/flexagon/src/app.ts` and `shared/api/README.md`.
 
 The native bundle also still contains the 40 inherited pilot problem fixtures and
 PDFs even though its visible published catalogue is empty. Move these into test-only
