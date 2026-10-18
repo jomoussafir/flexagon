@@ -25,7 +25,7 @@ Choose the phone in Xcode, use your existing signing team and run the Debug sche
 Device signing/installation must be completed from Xcode for the user's device.
 
 For optional Mac-local development, change this Debug-only URL to
-`http://127.0.0.1:9400/` and start **Open Website.command**. HTTP loopback is allowed
+`http://127.0.0.1:9410/` and start **Open Website.command**. HTTP loopback is allowed
 only in the simulator; a physical phone requires HTTPS. Removing the URL makes the
 simulator fall back to localhost and displays a configuration message on a phone.
 

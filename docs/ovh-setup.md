@@ -93,9 +93,10 @@ Use HTTPS and PHP 8.3 or later with DOM/XML and mbstring enabled.
 1. In this project run `npm run build:web` and `npm run package:web`.
 2. Sign into the OVH site's WordPress administration.
 3. Under Plugins → Add new → Upload, select
-   `dist/flexagon-plugin-0.2.0.zip` and activate it.
+   `dist/flexagon-plugin-<version>.zip` and activate it (choose **Replace current
+   with uploaded** when updating).
 4. Under Appearance → Themes → Add new → Upload, select
-   `dist/flexagon-theme-0.2.0.zip` and activate it.
+   `dist/flexagon-theme-<version>.zip` and activate it.
 5. Open the site's homepage. WordPress provides the existing administrator account;
    local-preview credentials are not uploaded.
 6. Configure a sender address and authenticated outgoing email with your chosen mail
@@ -112,6 +113,39 @@ Only the ZIP packages are deployed. Do not upload the entire repository, `.local
 Members register through the website and confirm their email. To promote a trusted
 reviewer, use WordPress Administration → Users → Edit user → Role → Administrator.
 Administrators can edit and publish any problem. Other members cannot change roles.
+
+## Private configuration constants — plugin 0.2.2
+
+`wp-content/lpdj-private-storage.php` (never packaged) may define, besides the storage key:
+
+- `LPDJ_TRUSTED_PROXY_HEADER`: for example `'HTTP_X_FORWARDED_FOR'`. Leave undefined
+  until confirmed. Sign-in, registration and upload throttles are counted per client
+  address; behind OVH's TLS proxy `REMOTE_ADDR` may be the proxy itself, which would
+  make one busy member lock everyone out for fifteen minutes. To check, sign in as an
+  administrator and read `window.LPDJ.session.addresses` in the browser console: when
+  `remote` is not your own public address but `forwarded` ends with it, define the
+  constant. Only the last forwarded entry is used, because that is the hop the proxy
+  appended; earlier entries are visitor-supplied.
+- `LPDJ_LEGACY_REVIEW_URL`: the predecessor review/PDF viewer linked from the admin
+  editor. Define it as `''` once that external service is retired; the link disappears
+  without a code change.
+
+## Scheduled tasks (WP-Cron)
+
+Publication notices, administrator alert retries and the overview refresh rely on
+WP-Cron, which only runs when a page is requested. On OVH create a scheduled task
+(hosting panel → Scheduled tasks / cron) that fetches
+`https://flexagon.fr/wp-cron.php?doing_wp_cron` every five minutes, then add
+`define('DISABLE_WP_CRON', true);` to `wp-config.php` so visitors no longer trigger it.
+This has not yet been configured on the live site.
+
+## Overview cache
+
+Problem overviews (`scope=published` and `scope=review`) are built once and kept in a
+transient until any save, publication, upload, deletion, import, display-name change or
+account deletion bumps `_lpdj_catalogue_version`. No manual flush is needed; if the
+database is restored from a backup, the first request rebuilds it. Member-specific
+lists (`scope=mine`) are never cached.
 
 ## Mail and caching
 

@@ -102,7 +102,7 @@ function lpdj_transfer_step($expected_hash, $batch = 100) {
     lpdj_transfer_guard();
     if (!add_option('_lpdj_catalogue_transfer_lock', time(), '', false)) throw new RuntimeException('Another transfer batch is running.');
     try { return lpdj_transfer_step_locked($expected_hash, $batch); }
-    finally { delete_option('_lpdj_catalogue_transfer_lock'); }
+    finally { delete_option('_lpdj_catalogue_transfer_lock'); if (function_exists('lpdj_catalogue_changed')) lpdj_catalogue_changed(); }
 }
 function lpdj_transfer_step_locked($expected_hash, $batch = 100) {
     global $wpdb;

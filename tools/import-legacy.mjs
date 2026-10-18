@@ -8,7 +8,7 @@ const filename=path.resolve(process.argv[2]||path.join(root,'private-data/legacy
 const bundle=JSON.parse(await fs.readFile(filename,'utf8'));
 if(bundle.format!=='lpdj-legacy-v1'||!Array.isArray(bundle.problems)||!bundle.problems.length)throw Error('Expected a complete lpdj-legacy-v1 export.');
 // Never mount a live SQLite database in two WordPress processes.
-try { const response=await fetch('http://127.0.0.1:9400/wp-json/lpdj/v1/session',{signal:AbortSignal.timeout(700)});if(response.ok)throw Error('Stop the local website before importing, then run npm start afterwards.'); }
+try { const response=await fetch('http://127.0.0.1:9410/wp-json/lpdj/v1/session',{signal:AbortSignal.timeout(700)});if(response.ok)throw Error('Stop the local website before importing, then run npm start afterwards.'); }
 catch(error){if(error.message.startsWith('Stop the local'))throw error;}
 const state=path.join(root,'.local/wordpress');
 await fs.access(path.join(state,'wp-load.php'));
@@ -19,7 +19,7 @@ const listen=Server.prototype.listen;
 Server.prototype.listen=function(...args){if(typeof args[0]==='number')return listen.call(this,{port:args[0],host:'127.0.0.1'},args.find(a=>typeof a==='function'));return listen.apply(this,args);};
 const server=await runCLI({command:'server',port:9402,wp:'7.1.3',php:'8.3',workers:6,login:false,
     wordpressInstallMode:'install-from-existing-files-if-needed',
-    'site-url':'http://127.0.0.1:9400',
+    'site-url':'http://127.0.0.1:9410',
     'mount-before-install':[{hostPath:state,vfsPath:'/wordpress'},{hostPath:path.join(root,'wordpress/plugins/flexagon'),vfsPath:'/wordpress/wp-content/plugins/flexagon'},{hostPath:path.dirname(filename),vfsPath:'/legacy-import'}],
     blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,DISABLE_WP_CRON:true},steps:[]}});
 try {

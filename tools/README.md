@@ -1,7 +1,9 @@
 # Project tools
 
 - `start-web.mjs`: persistent, loopback-only WordPress Playground preview; local email capture.
-- `build-web.mjs`: browser assets and matching math fonts for the WordPress theme.
+- `build-web.mjs`: browser assets and matching math fonts for the WordPress theme. It
+  deletes and recreates `assets/katex` and `assets/pdfjs` on every run, so stray copies
+  never reach a package; `package-web.py` also refuses Finder duplicates such as `pdf 2.mjs`.
 - `package-web.py`: deployment ZIPs containing only the plugin and theme.
 - `sync_branding.py`: copy/check the common logo for iOS and WordPress.
 

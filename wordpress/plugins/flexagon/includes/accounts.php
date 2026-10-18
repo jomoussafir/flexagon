@@ -10,8 +10,20 @@ function lpdj_public_form($request) {
     }
     return wp_verify_nonce($request->get_header('x-lpdj-form'), 'lpdj_form') ? true : lpdj_error('Reload the page and try again.', 403);
 }
+// Managed hosts terminate TLS on a proxy. REMOTE_ADDR is then the proxy, so one
+// shared counter would lock every member out together. Set LPDJ_TRUSTED_PROXY_HEADER
+// (for example 'HTTP_X_FORWARDED_FOR') in the private configuration only once the
+// host confirms its own proxy always sets that header; the last entry is the hop the
+// proxy appended and the only one a visitor cannot forge.
+function lpdj_client_ip() {
+    $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if (!defined('LPDJ_TRUSTED_PROXY_HEADER') || !LPDJ_TRUSTED_PROXY_HEADER || empty($_SERVER[LPDJ_TRUSTED_PROXY_HEADER])) return $remote;
+    $hops = array_map('trim', explode(',', (string) $_SERVER[LPDJ_TRUSTED_PROXY_HEADER]));
+    $client = end($hops);
+    return filter_var($client, FILTER_VALIDATE_IP) ? $client : $remote;
+}
 function lpdj_throttle($action, $limit = 10) {
-    $key = 'lpdj_rate_' . hash('sha256', $action . '|' . ($_SERVER['REMOTE_ADDR'] ?? 'local'));
+    $key = 'lpdj_rate_' . hash('sha256', $action . '|' . (lpdj_client_ip() ?: 'local'));
     $n = (int) get_transient($key);
     if ($n >= $limit) return lpdj_error('Too many attempts. Try again in fifteen minutes.', 429);
     set_transient($key, $n + 1, 15 * MINUTE_IN_SECONDS);
@@ -25,6 +37,8 @@ function lpdj_profile($user) {
 function lpdj_session() {
     return ['user' => lpdj_member() === true ? lpdj_profile(wp_get_current_user()) : null,
         'nonce' => wp_create_nonce('wp_rest'), 'formNonce' => wp_create_nonce('lpdj_form'), 'local' => lpdj_local(),
+        // Administrators can compare these with their own address to confirm the proxy setting.
+        'addresses' => lpdj_admin() ? ['client' => lpdj_client_ip(), 'remote' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''), 'forwarded' => (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''), 'trusted' => defined('LPDJ_TRUSTED_PROXY_HEADER') && LPDJ_TRUSTED_PROXY_HEADER] : null,
         'categories' => ['Algebra','Geometry','Number Theory','Combinatorics','Logic'],
         'sources' => ['Moscow Puzzles','Colossal Book','Animath','Challenging Problems in Geometry and Algebra','Yaglom','Stanford','IMO']];
 }
@@ -35,7 +49,7 @@ add_filter('wp_authenticate_user', function ($user) {
 function lpdj_send_verification($user) {
     $token = bin2hex(random_bytes(32));
     update_user_meta($user->ID, '_lpdj_verify_token', ['hash' => hash('sha256', $token), 'expires' => time() + DAY_IN_SECONDS]);
-    $url = home_url('/#/confirmer?user=' . $user->ID . '&token=' . $token);
+    $url = home_url('/#/confirm?user=' . $user->ID . '&token=' . $token);
     return wp_mail($user->user_email, 'Confirm your account — Flexagon', "Hello {$user->display_name},\n\nConfirm your email using this link (valid for 24 hours):\n$url\n\nIf you did not request this account, ignore this message.");
 }
 function lpdj_auth_register($r) {
@@ -85,7 +99,7 @@ function lpdj_auth_forgot($r) {
     $user = get_user_by('email', sanitize_email($r['email']));
     if ($user) {
         $key = get_password_reset_key($user);
-        if (!is_wp_error($key)) wp_mail($user->user_email, 'Reset your password — Flexagon', "Open this link to choose a new password:\n" . home_url('/#/reinitialiser?login=' . rawurlencode($user->user_login) . '&key=' . rawurlencode($key)) . "\n\nIf you did not request this, ignore this message.");
+        if (!is_wp_error($key)) wp_mail($user->user_email, 'Reset your password — Flexagon', "Open this link to choose a new password:\n" . home_url('/#/reset?login=' . rawurlencode($user->user_login) . '&key=' . rawurlencode($key)) . "\n\nIf you did not request this, ignore this message.");
     }
     return ['message' => 'If this account exists, a password-reset link has been sent.'];
 }
@@ -139,6 +153,7 @@ function lpdj_account_delete($r) {
     }
     require_once ABSPATH . 'wp-admin/includes/user.php';
     wp_logout(); wp_delete_user($user->ID, 0);
+    lpdj_catalogue_changed();
     return ['ok' => true];
 }
 // Only the local launcher sets this constant. OVH uses normal WordPress mail delivery.

@@ -56,5 +56,6 @@ function lpdj_import_legacy($records, $figures, $history = []) {
         // version was verified in the old editorial workspace.
         $result['created'][$legacy_id]=$id;
     }
+    if ($result['created']) lpdj_catalogue_changed();
     return $result;
 }

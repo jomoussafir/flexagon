@@ -57,7 +57,7 @@ function lpdj_admin_alert($kind, $id, $event = 0, $retry = false) {
             if ($draft && $draft['state'] === 'submitted') {
                 $subject = 'Problem submitted for review — ' . sanitize_text_field($post->post_title);
                 $author = get_the_author_meta('display_name', $post->post_author) ?: 'Deleted account';
-                $message = "A problem is ready for review.\n\nTitle: {$post->post_title}\nSubmitted by: $author\nCategory: {$draft['category']}\nDifficulty: {$draft['difficulty']}/5\nSource: {$draft['source']}\n\nReview the problem (administrator sign-in required):\n" . home_url('/#/editer/' . $id);
+                $message = "A problem is ready for review.\n\nTitle: {$post->post_title}\nSubmitted by: $author\nCategory: {$draft['category']}\nDifficulty: {$draft['difficulty']}/5\nSource: {$draft['source']}\n\nReview the problem (administrator sign-in required):\n" . home_url('/#/edit/' . $id);
             }
         }
         if (empty($preferences[$kind]) || !$message) {

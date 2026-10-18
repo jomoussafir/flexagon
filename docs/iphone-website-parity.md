@@ -62,6 +62,6 @@ submission/profile screens and the administrator workflow. Keep draft access and
 publication permissions enforced by WordPress, and test account switching, logout,
 approval boundaries and cross-client progress synchronization.
 
-The current website is a Mac-local preview bound to `127.0.0.1:9400`. Physical-phone
+The current website is a Mac-local preview bound to `127.0.0.1:9410`. Physical-phone
 integration also needs an explicitly configured reachable development or hosted
 website address; the Mac's loopback URL is not an iPhone server address.

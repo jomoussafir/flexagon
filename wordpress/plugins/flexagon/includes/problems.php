@@ -17,34 +17,50 @@ function lpdj_draft($post) {
     $data['hasPublished'] = (bool) get_post_meta($post->ID, '_lpdj_published', true);
     return $data;
 }
-function lpdj_present($data, $editor = false) {
+function lpdj_present($data, $editor = false, $author = null) {
     $data['source'] = lpdj_source_name($data['source']);
     foreach ($data['versions'] as $key => &$version) $version['language'] = lpdj_language_name($key, $version);
     unset($version);
     foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name]['url'] = lpdj_asset_url($asset['id']);
     $data['progress'] = get_user_meta(get_current_user_id(), '_lpdj_progress_' . $data['id'], true) ?: 'unseen';
-    $data['editable'] = lpdj_can_edit(lpdj_problem_post($data['id']));
+    $data['editable'] = $author === null ? lpdj_can_edit(lpdj_problem_post($data['id'])) : (lpdj_admin() || $author === get_current_user_id());
     if (!$editor) unset($data['reviewNote']);
     return $data;
+}
+// Overview rows are the same for every member apart from progress and edit rights.
+// Building them loads every problem's full draft or snapshot, so the shared
+// published/review rows are kept in a transient until the catalogue changes.
+// Every write path bumps the version through lpdj_catalogue_changed(); the version
+// is part of the key, so a stale entry is never read again and expires on its own.
+function lpdj_catalogue_changed() { update_option('_lpdj_catalogue_version', (string) microtime(true), false); }
+function lpdj_overview_rows($scope, $author = 0) {
+    $key = 'lpdj_overview_' . md5($scope . '|' . get_option('_lpdj_catalogue_version', '0') . '|' . LPDJ_VERSION);
+    $rows = $author ? false : get_transient($key);
+    if (is_array($rows)) return $rows;
+    $args = ['post_type' => 'lpdj_problem', 'post_status' => 'private', 'posts_per_page' => -1, 'orderby' => 'ID', 'order' => 'DESC'];
+    if ($author) $args['author'] = $author;
+    $rows = [];
+    foreach (get_posts($args) as $post) {
+        $pub = get_post_meta($post->ID, '_lpdj_published', true);
+        $data = $scope === 'published' ? $pub : lpdj_draft($post);
+        if (!$data) continue;
+        // Overview records do not include full statements or image data.
+        foreach ($data['versions'] as &$v) unset($v['latex']);
+        unset($v, $data['assets']);
+        if ($scope === 'review') $data['references'] = lpdj_problem_references(get_post_meta($post->ID, '_lpdj_legacy', true));
+        $rows[] = ['data' => $data, 'author' => (int) $post->post_author, 'published' => $pub ? lpdj_source_name($pub['source']) : null];
+    }
+    if (!$author) set_transient($key, $rows, 12 * HOUR_IN_SECONDS);
+    return $rows;
 }
 function lpdj_problems_list($r) {
     $scope = $r['scope'] ?: 'published';
     if (!in_array($scope, ['published','mine','review'], true)) return lpdj_error('Unknown list.');
     if ($scope === 'review' && !lpdj_admin()) return lpdj_error('Administrator access required.', 403);
-    $args = ['post_type' => 'lpdj_problem', 'post_status' => 'private', 'posts_per_page' => -1, 'orderby' => 'ID', 'order' => 'DESC'];
-    if ($scope === 'mine') $args['author'] = get_current_user_id();
     $items = []; $counts = []; $published = 0;
-    foreach (get_posts($args) as $post) {
-        $pub = get_post_meta($post->ID, '_lpdj_published', true);
-        if ($pub) { $published++; $source = lpdj_source_name($pub['source']); $counts[$source] = ($counts[$source] ?? 0) + 1; }
-        $data = $scope === 'published' ? $pub : lpdj_draft($post);
-        if (!$data) continue;
-        $data = lpdj_present($data, $scope !== 'published');
-        if ($scope === 'review') $data['references'] = lpdj_problem_references(get_post_meta($post->ID, '_lpdj_legacy', true));
-        // Overview records do not include full statements or image data.
-        foreach ($data['versions'] as &$version) unset($version['latex']);
-        unset($version, $data['assets']);
-        $items[] = $data;
+    foreach (lpdj_overview_rows($scope, $scope === 'mine' ? get_current_user_id() : 0) as $row) {
+        if ($row['published'] !== null) { $published++; $counts[$row['published']] = ($counts[$row['published']] ?? 0) + 1; }
+        $items[] = lpdj_present($row['data'], $scope !== 'published', $row['author']);
     }
     return ['items' => $items, 'total' => count($items), 'published' => $published, 'sources' => $counts];
 }
@@ -59,7 +75,7 @@ function lpdj_problem_get($r) {
     if ($edit && lpdj_admin() && ($legacy = get_post_meta($post->ID, '_lpdj_legacy', true))) {
         $data['references'] = lpdj_problem_references($legacy);
         $data['legacy'] = ['id'=>$legacy['id'],'revision'=>$legacy['revision'],'sources'=>$legacy['sources'],'occurrences'=>$legacy['occurrences'],'note'=>$legacy['note'],
-            'reviewUrl'=>'https://le-probleme-du-jour-review.msfr935475.chatgpt.site/validation?problem='.rawurlencode($legacy['id'])];
+            'reviewUrl'=>LPDJ_LEGACY_REVIEW_URL ? LPDJ_LEGACY_REVIEW_URL.'?problem='.rawurlencode($legacy['id']) : null];
     }
     return $data;
 }
@@ -71,6 +87,7 @@ function lpdj_problem_create() {
         'source' => 'Community', 'keywords' => [], 'reviewNote' => '', 'assets' => [],
         'updated' => gmdate('c'), 'versions' => ['en' => ['language'=>'English', 'title' => '', 'latex' => '', 'approved' => false]]];
     lpdj_json_meta($id, '_lpdj_draft', $data);
+    lpdj_catalogue_changed();
     return lpdj_present(lpdj_draft(get_post($id)), true);
 }
 function lpdj_validate_problem($r, $old) {
@@ -171,6 +188,7 @@ function lpdj_problem_save($r) {
         wp_insert_post(wp_slash(['post_type' => 'lpdj_history', 'post_status' => 'private', 'post_parent' => $id, 'post_author' => get_current_user_id(),
             'post_title' => $action, 'post_content' => wp_json_encode($data, JSON_UNESCAPED_UNICODE)]));
         if ($action === 'submit' && $old['state'] !== 'submitted') lpdj_admin_alert('submission', $id, $data['revision']);
+        lpdj_catalogue_changed();
         return lpdj_present(lpdj_draft(get_post($id)), true);
     } finally { delete_option('_lpdj_lock_' . $id); }
 }
@@ -195,6 +213,7 @@ function lpdj_problem_delete($r) {
         if (get_post_meta($post->ID, '_lpdj_published', true)) return lpdj_error('An administrator must unpublish this problem first.');
         foreach (get_posts(['post_type' => ['lpdj_asset','lpdj_history'], 'post_status' => 'private', 'post_parent' => $post->ID, 'posts_per_page' => -1]) as $child) wp_delete_post($child->ID, true);
         wp_delete_post($post->ID, true);
+        lpdj_catalogue_changed();
         return ['ok' => true];
     } finally { delete_option('_lpdj_lock_' . $post->ID); }
 }
@@ -212,7 +231,7 @@ add_action('lpdj_notify_published', function ($id) {
     foreach ($users as $user) {
         if (get_user_meta($user->ID, '_lpdj_verification', true) === 'pending') continue;
         if (in_array($user->ID, $sent, true)) continue;
-        if (wp_mail($user->user_email, 'New problem : ' . $version['title'], $version['title'] . "\n\nA new problem is available:\n" . home_url('/#/probleme/' . $id) . "\n\nTo stop these notifications, uncheck the option in your profile:\n" . home_url('/#/profil'))) {
+        if (wp_mail($user->user_email, 'New problem : ' . $version['title'], $version['title'] . "\n\nA new problem is available:\n" . home_url('/#/problem/' . $id) . "\n\nTo stop these notifications, uncheck the option in your profile:\n" . home_url('/#/profile'))) {
             $sent[] = $user->ID; update_post_meta($id, '_lpdj_notified_users', $sent);
         } else $failed = true;
     }

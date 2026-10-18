@@ -2,15 +2,18 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.1
+ * Version: 0.2.2
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.1');
+define('LPDJ_VERSION', '0.2.2');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
+// The predecessor's independently hosted review/PDF viewer. Override or set to '' in
+// the private configuration when that service is retired; no code change is needed.
+defined('LPDJ_LEGACY_REVIEW_URL') || define('LPDJ_LEGACY_REVIEW_URL', 'https://le-probleme-du-jour-review.msfr935475.chatgpt.site/validation');
 require_once __DIR__ . '/includes/private-files.php';
 require_once __DIR__ . '/includes/accounts.php';
 require_once __DIR__ . '/includes/problems.php';
@@ -41,6 +44,8 @@ function lpdj_local() { return defined('LPDJ_LOCAL_PREVIEW') && LPDJ_LOCAL_PREVI
 function lpdj_route($path, $methods, $callback, $permission = 'lpdj_member') {
     register_rest_route('lpdj/v1', $path, ['methods' => $methods, 'callback' => $callback, 'permission_callback' => $permission]);
 }
+add_action('profile_update', 'lpdj_catalogue_changed');
+add_action('deleted_user', 'lpdj_catalogue_changed');
 add_action('rest_api_init', function () {
     lpdj_route('/session', 'GET', 'lpdj_session', '__return_true');
     foreach (['register','login','verify','resend','forgot','reset'] as $action) {

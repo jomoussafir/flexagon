@@ -52,7 +52,7 @@ function lpdj_asset_upload($r) {
             'post_title' => $name, 'post_content' => wp_json_encode(['mime' => $mime, 'data' => base64_encode($content)])]), true);
         if (is_wp_error($asset_id)) return lpdj_error('Could not save the figure.', 500);
         $asset = ['id' => $asset_id, 'mime' => $mime];
-        if ($id) { $draft['assets'][$name] = $asset; $draft['revision']++; lpdj_json_meta($id, '_lpdj_draft', $draft); }
+        if ($id) { $draft['assets'][$name] = $asset; $draft['revision']++; lpdj_json_meta($id, '_lpdj_draft', $draft); lpdj_catalogue_changed(); }
         return ['name' => $name, 'asset' => $asset + ['url' => lpdj_asset_url($asset_id)], 'revision' => $id ? $draft['revision'] : null];
     } finally { if ($id) delete_option('_lpdj_lock_' . $id); }
 }

@@ -1,3 +1,27 @@
+# Deployment hygiene and performance fixes — 18 October 2026
+
+- Theme assets: 1,138 Finder duplicate files (for example `pdf 2.mjs`, `LICENSE 3`,
+  duplicated KaTeX fonts and CMaps) were deleted. The build now recreates the vendored
+  `katex` and `pdfjs` directories on every run and the packager refuses such names.
+  The theme ZIP shrank from 19.4 MB (0.2.1) to 4.1 MB (0.2.2) with identical content.
+- Local port references corrected from 9400 to 9410 in the legacy import guard, the
+  iPhone guide and two audit documents.
+- Plugin and theme 0.2.2: overview lists for `published` and `review` are served from
+  a transient invalidated by every write path; `editable` no longer loads each post
+  separately. Throttles use `lpdj_client_ip()`, which honours a trusted proxy header
+  only when `LPDJ_TRUSTED_PROXY_HEADER` is defined. The legacy review link reads
+  `LPDJ_LEGACY_REVIEW_URL`. KaTeX stylesheet versioning uses the file time.
+- Emails link to English addresses (`#/confirm`, `#/reset`, `#/problem`, `#/profile`,
+  `#/edit`); the French names remain aliases in the router.
+- Results: website build and both 0.2.2 ZIPs; 60 isolated WordPress integration checks,
+  8 LaTeX checks and 7 progress checks passed; branding check passed. Local preview
+  smoke test as administrator: review overview returned 1,856 records with no
+  statements or image data, 2 publications, correct `editable`/`progress`; session
+  `addresses` reported for the administrator only.
+- Not changed here: the OVH cron task and the proxy header decision require the live
+  host; PDF.js CMaps, standard fonts and wasm are kept because no reference PDF was
+  found to need them but the saving is under 4 MB uncompressed.
+
 # Website verification — 13 October 2026
 
 ## Current website
@@ -62,7 +86,7 @@
 - Local emails are captured in an admin-only mailbox. No real email was sent.
 
 The integration suite uses a separate disposable database on port 9401. The persistent
-preview is on port 9400 and is bound to loopback only. Local state and credentials are
+preview is on port 9410 and is bound to loopback only. Local state and credentials are
 ignored by Git and excluded from deployment packages.
 
 ## Remaining environment checks

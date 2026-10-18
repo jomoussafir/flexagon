@@ -4,7 +4,7 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 
 | Method and endpoint | Purpose |
 | --- | --- |
-| `GET /session` | Current member, CSRF tokens and category/source definitions |
+| `GET /session` | Current member, CSRF tokens, category/source definitions; administrators also receive `addresses` (client/remote/forwarded) to verify the proxy setting |
 | `POST /auth/register` | Email, pseudo, password, consent and notification preference |
 | `POST /auth/verify` | Single-use email confirmation token |
 | `POST /auth/login`, `/auth/logout` | Website cookie session |
@@ -43,7 +43,8 @@ published snapshot until the administrator explicitly republishes. No language i
 required, and clients must not assume FR/EN exist.
 
 The published overview includes the current user's `progress` and language names,
-but omits full statements. It supplies the website's personal Progress grids;
+but omits full statements. Published and review overviews are served from a shared
+cache that every write route invalidates; `progress` and `editable` are added per request. It supplies the website's personal Progress grids;
 `unseen`, `bookmarked` and `attempted` all count as unsolved.
 
 Save requests contain the current revision and action `save`, `submit`, `publish`,
@@ -68,3 +69,10 @@ private file manifest and returns the total page count, part range, page inside 
 part and an authenticated PDF URL. The protected `lpdj_reference` admin-ajax action
 checks administrator permissions on every download and sends `private, no-store`.
 There is no public reference endpoint, file upload or arbitrary-path download route.
+
+## Website addresses in email
+
+Confirmation, reset, publication and review emails link to `#/confirm`, `#/reset`,
+`#/problem/{id}`, `#/profile` and `#/edit/{id}`. The historic French addresses
+(`#/confirmer`, `#/reinitialiser`, `#/probleme`, `#/profil`, `#/editer`) remain
+valid aliases so links in older messages keep working.

@@ -1,7 +1,7 @@
 {
   "name": "flexagon",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.2",
   "type": "module",
   "description": "Shared repository for the WordPress website, iPhone app and future Android app.",
   "engines": {

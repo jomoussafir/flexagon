@@ -5,6 +5,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import json
 import re
 
+DUPLICATE = re.compile(r' \d+(\.[A-Za-z0-9]+)?$')  # Finder copies: 'pdf 2.mjs', 'LICENSE 3'
+
 root = Path(__file__).resolve().parents[1]
 version = json.loads((root / 'package.json').read_text())['version']
 out = root / 'dist'
@@ -23,6 +25,8 @@ for kind, folder in (('plugin', root / 'wordpress/plugins/flexagon'), ('theme', 
             relative = file.relative_to(folder)
             if not file.is_file() or relative.parts[0] == 'src' or file.name.startswith('.') or file.suffix == '.md':
                 continue
+            if DUPLICATE.search(file.name):
+                raise SystemExit(f'Stray duplicate file in {kind}: {relative}. Delete it and run npm run build:web.')
             if kind == 'plugin' and file.suffix != '.php':
                 continue
             package.write(file, Path('flexagon') / relative)
