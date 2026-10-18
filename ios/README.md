@@ -42,15 +42,20 @@ loopback hosts. There is no global insecure-load exception.
 
 ## Verification
 
-All 22 tests passed on iPhone 17 Pro / iOS 26 against OVH on 13 October 2026. The
+All 22 tests passed on iPhone 16 / iOS 18.5 (Xcode 26.0.1) against the live
+https://www.flexagon.fr/ site with plugin and theme 0.2.2 on 18 October 2026. The
 connection smoke check loads the configured WordPress landing page in WebKit and
 verifies that anonymous access to problems remains denied. It uses WordPress’s
 query REST route, which works with or without pretty permalinks.
 
+Use a simulator that exists on your Mac. List them with
+`xcodebuild -project ios/Flexagon.xcodeproj -scheme Flexagon -showdestinations`,
+then substitute its name below:
+
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -project ios/Flexagon.xcodeproj -scheme Flexagon \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0' \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
   -configuration Debug -derivedDataPath /private/tmp/lpdj-local-iphone-build \
   CODE_SIGNING_ALLOWED=NO test
 ```
