@@ -203,6 +203,27 @@ WordPress database. Losing the key makes the encrypted files unrecoverable.
 Do not put reference books or the key in WordPress Media, the theme, or Git.
 The ordinary local preview continues using its original private plaintext library.
 
+## External link cleanup — plugin 0.2.4
+
+Problem statements are plain text with no external links. External provenance URLs
+existed only in private `_lpdj_legacy` source citations (IMO and Animath links), and
+the retired predecessor review viewer was injected as `legacy.reviewUrl`. Plugin 0.2.4
+removes both:
+
+- `LPDJ_LEGACY_REVIEW_URL` now defaults to `''`, so no review link is emitted. The
+  private configuration no longer needs to set it.
+- The edit API no longer sends source URLs to the browser, and the editor posts only
+  the fields the server uses, so no external reference travels in a publish request.
+  This is what the OVH WAF was blocking.
+- A one-time cleanup strips `sources[].url` from stored legacy metadata and its history.
+  It runs automatically in small batches while an administrator browses wp-admin after
+  the 0.2.4 plugin is active; no WP-CLI is required. It is idempotent and can also be
+  run directly: `wp eval 'echo wp_json_encode(lpdj_strip_legacy_urls());'` (repeat until
+  `done` is true). Re-imports are stripped at import time.
+
+Confirm afterwards that a problem with no figure, such as a Moscow puzzle, publishes
+on the live site, and that the firewall no longer blocks the request.
+
 ## Source figure library — prepared, not yet uploaded
 
 Figures traced from the reference books (`tools/extract-figures.py`) form a second

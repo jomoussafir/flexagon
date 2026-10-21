@@ -74,7 +74,10 @@ function lpdj_problem_get($r) {
     $data = lpdj_present($data, $edit);
     if ($edit && lpdj_admin() && ($legacy = get_post_meta($post->ID, '_lpdj_legacy', true))) {
         $data['references'] = lpdj_problem_references($legacy);
-        $data['legacy'] = ['id'=>$legacy['id'],'revision'=>$legacy['revision'],'sources'=>$legacy['sources'],'occurrences'=>$legacy['occurrences'],'note'=>$legacy['note'],
+        // Source citations keep title/number/page; external provenance URLs are never
+        // sent to the client, so no external reference leaves the server.
+        $sources = array_map(fn($s) => is_array($s) ? array_diff_key($s, ['url' => true]) : $s, (array) $legacy['sources']);
+        $data['legacy'] = ['id'=>$legacy['id'],'revision'=>$legacy['revision'],'sources'=>$sources,'occurrences'=>$legacy['occurrences'],'note'=>$legacy['note'],
             'reviewUrl'=>LPDJ_LEGACY_REVIEW_URL ? LPDJ_LEGACY_REVIEW_URL.'?problem='.rawurlencode($legacy['id']) : null];
     }
     return $data;

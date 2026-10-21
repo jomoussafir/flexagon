@@ -44,7 +44,12 @@ async function api(path:string, data?:any, method?:string) {
     const headers:Record<string,string>={'X-WP-Nonce':session.nonce,'X-LPDJ-Form':session.formNonce};
     if(data && !(data instanceof FormData))headers['Content-Type']='application/json';
     const response=await fetch(url,{method:method||(data?'POST':'GET'),headers,credentials:'same-origin',body:data?(data instanceof FormData?data:JSON.stringify(data)):undefined});
-    const result=await response.json();
+    // A firewall, proxy or server error can return HTML or text instead of JSON; report it plainly.
+    const body=await response.text();
+    let result:any;
+    try{result=JSON.parse(body);}catch{
+        throw new Error(response.ok?'The server returned an unexpected response. Please try again.':`The request was blocked or rejected by the server${response.status?' ('+response.status+')':''}. If this keeps happening, a server or firewall rule may need adjusting.`);
+    }
     if(!response.ok)throw new Error(result.message||'Something went wrong. Please try again.');
     return result;
 }
@@ -259,7 +264,9 @@ async function saveProblem(action:string) {
     if(action==='unpublish'&&!confirm('Unpublish this problem? The draft will be kept.'))return;
     if(action==='submit'||action==='publish')for(const [lang,v] of Object.entries(problem.versions) as any){if(action==='submit'||v.approved){try{math(v,problem.assets);}catch(error:any){message(`${languageName(lang,v)}: ${error.message}`,true);return;}}}
     const buttons=document.querySelectorAll<HTMLButtonElement>('[data-save]');buttons.forEach(b=>b.disabled=true);
-    try{problem=await api('problems/'+problem.id,{...problem,action});dirty=false;showEditor();toast(({save:'Draft saved.',submit:'Submitted for review.',publish:'Verified versions published.',return:'Returned to author.',unpublish:'Problem unpublished.'} as any)[action]);}catch(error:any){message(error.message,true);}finally{buttons.forEach(b=>b.disabled=false);}
+    // Send only the fields the server reads; the legacy block and its source URLs stay in the browser.
+    const payload={action,revision:problem.revision,category:problem.category,difficulty:problem.difficulty,source:problem.source,keywords:problem.keywords,reviewNote:problem.reviewNote,versions:problem.versions};
+    try{problem=await api('problems/'+problem.id,payload);dirty=false;showEditor();toast(({save:'Draft saved.',submit:'Submitted for review.',publish:'Verified versions published.',return:'Returned to author.',unpublish:'Problem unpublished.'} as any)[action]);}catch(error:any){message(error.message,true);}finally{buttons.forEach(b=>b.disabled=false);}
 }
 function profile() {
     if(!session.user){routeTo('/connexion');return;}const u=session.user;avatar=0;
