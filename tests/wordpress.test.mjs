@@ -3,7 +3,7 @@ import { runCLI } from '@wp-playground/cli';
 import { Server } from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const listen=Server.prototype.listen;
@@ -13,9 +13,19 @@ const referenceDir=await mkdtemp(path.join(tmpdir(),'lpdj-reference-test-'));
 await writeFile(path.join(referenceDir,'first.pdf'),'%PDF-1.4\nFirst private part\n%%EOF');
 await writeFile(path.join(referenceDir,'second.pdf'),'%PDF-1.4\nSecond private part\n%%EOF');
 await writeFile(path.join(referenceDir,'manifest.json'),JSON.stringify([{id:'yaglom-1',title:'Yaglom Vol 1',pages:20,parts:[{start:1,end:10,file:'first.pdf'},{start:11,end:20,file:'second.pdf'}]},{id:'bad-path',title:'Invalid path',pages:1,parts:[{start:1,end:1,file:'../wp-config.php'}]}]));
+const figureDir=await mkdtemp(path.join(tmpdir(),'lpdj-figure-test-'));
+const tracedPdf='%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 80]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF';
+const tracedSvg='<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="100pt" height="80pt" viewBox="0 0 100 80"><g transform="translate(0,80) scale(0.1,-0.1)" fill="#000000" stroke="none"><path d="M100 100 L900 100 L500 700 Z"/></g></svg>';
+await mkdir(path.join(figureDir,'yaglom-1'),{recursive:true});
+await writeFile(path.join(figureDir,'yaglom-1/yaglom-1-p13-1.pdf'),tracedPdf);
+await writeFile(path.join(figureDir,'yaglom-1/yaglom-1-p13-1.svg'),tracedSvg);
+await writeFile(path.join(figureDir,'manifest.json'),JSON.stringify({format:'lpdj-figures-v1',figures:[
+    {id:'yaglom-1-p13-1',source:'yaglom-1',sourceId:'yaglom-1',sourceTitle:'Yaglom Vol 1',page:13,index:1,dir:'yaglom-1',pdf:'traced.pdf',svg:'traced.svg',width:90,height:70,warnings:[],redrawn:{dir:'yaglom-1',pdf:'yaglom-1-p13-1.pdf',svg:'yaglom-1-p13-1.svg',width:100,height:80}},
+    {id:'yaglom-1-p13-2',source:'yaglom-1',sourceId:'yaglom-1',sourceTitle:'Yaglom Vol 1',page:13,index:2,dir:'yaglom-1',pdf:'yaglom-1-p13-1.pdf',svg:'yaglom-1-p13-1.svg',width:1,height:1,warnings:[]},
+    {id:'escape',source:'yaglom-1',sourceId:'yaglom-1',sourceTitle:'Yaglom Vol 1',page:13,index:3,dir:'yaglom-1',pdf:'x.pdf',svg:'x.svg',width:1,height:1,warnings:[],redrawn:{dir:'../..',pdf:'wp-config.php',svg:'x.svg',width:1,height:1}}]}));
 const server=await runCLI({command:'server',port:9401,wp:'7.1.3',php:'8.3',workers:6,login:false,internalCookieStore:false,
-    'mount-before-install':[{hostPath:referenceDir,vfsPath:'/lpdj-test-references'},{hostPath:path.join(root,'wordpress/plugins/flexagon'),vfsPath:'/wordpress/wp-content/plugins/flexagon'}, {hostPath:path.join(root,'wordpress/themes/flexagon'),vfsPath:'/wordpress/wp-content/themes/flexagon'}],
-    blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,LPDJ_REFERENCE_DIR:'/lpdj-test-references',DISABLE_WP_CRON:true},steps:[{step:'runPHP',code:`<?php
+    'mount-before-install':[{hostPath:referenceDir,vfsPath:'/lpdj-test-references'},{hostPath:figureDir,vfsPath:'/lpdj-test-figures'},{hostPath:path.join(root,'wordpress/plugins/flexagon'),vfsPath:'/wordpress/wp-content/plugins/flexagon'}, {hostPath:path.join(root,'wordpress/themes/flexagon'),vfsPath:'/wordpress/wp-content/themes/flexagon'}],
+    blueprint:{constants:{WP_ENVIRONMENT_TYPE:'local',LPDJ_LOCAL_PREVIEW:true,LPDJ_REFERENCE_DIR:'/lpdj-test-references',LPDJ_FIGURE_DIR:'/lpdj-test-figures',DISABLE_WP_CRON:true},steps:[{step:'runPHP',code:`<?php
         require '/wordpress/wp-load.php'; require_once ABSPATH.'wp-admin/includes/plugin.php';
         activate_plugin('flexagon/flexagon.php');switch_theme('flexagon');
         wp_update_user(['ID'=>1,'user_email'=>'admin@example.test','user_pass'=>'${password}']);
@@ -76,6 +86,29 @@ try {
     await check('Safe vector figure upload succeeds',async()=>{const result=await upload(author,'triangle.svg',svg);assert.equal(result.status,200,JSON.stringify(result.data));figure=result.data;draft.revision=figure.revision;});
     await check('Draft figures cannot be downloaded by other members or guests',async()=>{assert.equal((await reader.request(figure.asset.url)).status,403);assert.equal((await anon.request(figure.asset.url)).status,401);assert.equal((await author.request(figure.asset.url)).status,200);});
     await check('SVG scripts and external resources are rejected',async()=>{assert.equal((await upload(author,'bad.svg','<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')).status,400);assert.equal((await upload(author,'external.svg','<svg xmlns="http://www.w3.org/2000/svg"><use href="https://evil.example/x"/></svg>')).status,400);});
+    const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==','base64');
+    async function uploadPdf(client,name,pdf,preview,id=draft.id){const form=new FormData();form.append('problem',String(id));form.append('revision',String(draft.revision));form.append('file',new Blob([pdf],{type:'application/pdf'}),name);if(preview)form.append('preview',new Blob([preview],{type:'image/png'}),name.replace(/\.pdf$/,'.png'));return client.request('assets',form,'POST');}
+    await check('A one-page PDF figure uploads with its rendered preview; scripts, fakes and missing previews are rejected',async()=>{
+        assert.equal((await uploadPdf(author,'nopreview.pdf',tracedPdf,null)).status,400);
+        assert.equal((await uploadPdf(author,'script.pdf',tracedPdf.replace('/Type/Catalog','/Type/Catalog/OpenAction<</S/JavaScript/JS(app.alert(1))>>'),png)).status,400);
+        assert.equal((await uploadPdf(author,'fake.pdf','not a pdf',png)).status,400);
+        assert.equal((await uploadPdf(author,'avatar.pdf',tracedPdf,png,0)).status,400);
+        const result=await uploadPdf(author,'drawing.pdf',tracedPdf+'\nstream\n/JavaScript inside compressed bytes is not an action\nendstream',png);assert.equal(result.status,200,JSON.stringify(result.data));draft.revision=result.data.revision;
+        assert.equal(result.data.asset.mime,'application/pdf');assert.ok(result.data.asset.pdf);
+        const view=await author.request(result.data.asset.url);assert.equal(view.status,200);assert.equal(view.headers.get('content-type'),'image/png');
+        const master=await author.request(result.data.asset.pdf);assert.equal(master.status,200);assert.equal(master.headers.get('content-type'),'application/pdf');assert.match(master.data,/^%PDF-/);
+        assert.equal((await reader.request(result.data.asset.pdf)).status,403);
+        assert.equal((await author.request(figure.asset.url+'&format=pdf')).status,404);
+    });
+    await check('An attached figure can be detached by its author only, at the current revision',async()=>{
+        const second=await uploadPdf(author,'spare.pdf',tracedPdf,png);assert.equal(second.status,200);draft.revision=second.data.revision;
+        assert.equal((await reader.request('problems/'+draft.id+'/assets/spare.pdf',{revision:draft.revision},'DELETE')).status,403);
+        assert.equal((await author.request('problems/'+draft.id+'/assets/spare.pdf',{revision:draft.revision-1},'DELETE')).status,409);
+        assert.equal((await author.request('problems/'+draft.id+'/assets/missing.pdf',{revision:draft.revision},'DELETE')).status,404);
+        const removed=await author.request('problems/'+draft.id+'/assets/spare.pdf',{revision:draft.revision},'DELETE');assert.equal(removed.status,200,JSON.stringify(removed.data));draft.revision=removed.data.revision;
+        assert.equal((await author.request(second.data.asset.url)).status,404);
+        assert.equal('spare.pdf' in (await author.get('problems/'+draft.id+'?context=edit')).assets,false);
+    });
     draft=await author.get('problems/'+draft.id+'?context=edit');
     draft.versions.fr.latex+='\n\nVoir la figure~\\ref{fig:triangle}.\n\n\\begin{figure}\n\\includegraphics[width=0.7\\linewidth]{triangle.svg}\n\\caption{Un triangle}\n\\label{fig:triangle}\n\\end{figure}';
     await check('Draft saves and rejected changes do not send review alerts',async()=>assert.equal((await alerts('submission')).length,0));
@@ -126,9 +159,39 @@ try {
     await check('Reference page navigation maps correctly across split PDF boundaries',async()=>{const previous=await admin.get('problems/'+imported.id+'/reference?page=10');const next=await admin.get('problems/'+imported.id+'/reference?page=11');assert.equal(previous.pageInFile,10);assert.equal(next.pageInFile,1);assert.notEqual(previous.url,next.url);assert.equal(next.originalPage,13);assert.equal((await admin.request('problems/'+imported.id+'/reference?page=21')).status,404);assert.equal((await admin.request('problems/'+imported.id+'/reference?index=7')).status,404);assert.equal((await admin.request('problems/'+imported.id+'/reference?page=-1')).status,400);});
     await check('Only administrators can read PDF metadata or private PDF bytes',async()=>{assert.equal((await anon.request('problems/'+imported.id+'/reference')).status,403);assert.equal((await multilingual.request('problems/'+imported.id+'/reference')).status,403);assert.equal((await anon.request(reference.url)).status,401);assert.equal((await multilingual.request(reference.url)).status,403);const response=await admin.request(reference.url);assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/pdf');assert.match(response.headers.get('cache-control'),/no-store/);assert.match(response.data,/Second private part/);});
     await check('Reference lookup rejects path traversal and unknown sources',async()=>{const url=base+'/wp-admin/admin-ajax.php?action=lpdj_reference&source=';assert.equal((await admin.request(url+'..%2Fwp-config&page=1')).status,400);assert.equal((await admin.request(url+'unknown&page=1')).status,404);assert.equal((await admin.request(url+'bad-path&page=1')).status,404);});
-    await check('Publishing a problem never exposes reference books or their metadata to members',async()=>{imported=await admin.post('problems/'+imported.id,{...imported,action:'publish'});const pub=await multilingual.get('problems/'+imported.id);assert.equal('references' in pub,false);assert.equal('legacy' in pub,false);assert.equal((await multilingual.get('problems')).items.some(p=>'references' in p),false);assert.equal((await multilingual.request(reference.url)).status,403);});
+    await check('Source figures are listed for administrators only, redrawn ones only, opening on the problem’s reference page',async()=>{
+        assert.equal((await multilingual.request('figures')).status,403);assert.equal((await anon.request('figures')).status,403);
+        const list=await admin.get('figures?problem='+imported.id+'&default=1');assert.equal(list.available,true);assert.deepEqual(list.sources.map(s=>s.slug),['yaglom-1']);assert.equal(list.total,1);
+        assert.equal(list.source,'yaglom-1');assert.equal(list.page,13);assert.equal(list.figures[0].name,'yaglom-1-p13-1.pdf');assert.equal(list.figures[0].width,100);assert.ok(!list.figures.some(f=>f.id==='yaglom-1-p13-2'));
+        assert.equal((await admin.get('figures?source=yaglom-1&page=14')).total,0);assert.equal((await admin.get('figures?problem='+imported.id+'&source=yaglom-1&page=14&default=1')).total,0);assert.equal((await admin.get('figures')).page,null);
+        const preview=await admin.request(list.figures[0].url);assert.equal(preview.status,200);assert.equal(preview.headers.get('content-type'),'image/svg+xml');assert.match(preview.data,/<svg/);
+        const master=await admin.request(list.figures[0].pdf);assert.equal(master.status,200);assert.equal(master.headers.get('content-type'),'application/pdf');
+        assert.equal((await multilingual.request(list.figures[0].url)).status,403);assert.equal((await anon.request(list.figures[0].pdf)).status,401);
+        const url=base+'/wp-admin/admin-ajax.php?action=lpdj_figure&format=pdf&id=';assert.equal((await admin.request(url+'escape')).status,404);assert.equal((await admin.request(url+'yaglom-1-p13-2')).status,404);assert.equal((await admin.request(url+'..%2Fmanifest')).status,404);
+    });
+    let attached;
+    await check('Attaching a source figure stores its PDF master with an SVG preview under a .pdf filename, and re-attaching refreshes the copy',async()=>{
+        const before=await admin.get('problems/'+imported.id+'?context=edit');
+        assert.equal((await admin.request('problems/'+imported.id+'/figures',{figure:'yaglom-1-p13-1',revision:before.revision-1},'POST')).status,409);
+        assert.equal((await admin.request('problems/'+imported.id+'/figures',{figure:'escape',revision:before.revision},'POST')).status,404);
+        assert.equal((await multilingual.request('problems/'+imported.id+'/figures',{figure:'yaglom-1-p13-1',revision:before.revision},'POST')).status,403);
+        attached=await admin.post('problems/'+imported.id+'/figures',{figure:'yaglom-1-p13-1',revision:before.revision});
+        assert.equal(attached.name,'yaglom-1-p13-1.pdf');assert.equal(attached.asset.mime,'application/pdf');assert.equal(attached.revision,before.revision+1);
+        const view=await admin.request(attached.asset.url);assert.equal(view.headers.get('content-type'),'image/svg+xml');assert.match(view.data,/<svg/);
+        const master=await admin.request(attached.asset.pdf);assert.equal(master.headers.get('content-type'),'application/pdf');assert.match(master.data,/^%PDF-/);
+        await writeFile(path.join(figureDir,'yaglom-1/yaglom-1-p13-1.svg'),tracedSvg.replace('M100 100','M120 120'));
+        const again=await admin.post('problems/'+imported.id+'/figures',{figure:'yaglom-1-p13-1',revision:attached.revision});assert.equal(again.replaced,true);assert.equal(again.asset.id,attached.asset.id);assert.equal(again.revision,attached.revision+1);
+        assert.match((await admin.request(again.asset.url)).data,/M120 120/);attached=again;
+        imported=await admin.get('problems/'+imported.id+'?context=edit');assert.equal(imported.assets['yaglom-1-p13-1.pdf'].pdf,attached.asset.pdf);
+        imported.versions.en.latex+='\n\\begin{figure}\n\\includegraphics[width=0.5\\linewidth]{yaglom-1-p13-1.pdf}\n\\caption{Traced}\n\\label{fig:t}\n\\end{figure}';
+        imported=await admin.post('problems/'+imported.id,{...imported,action:'save'});
+    });
+    await check('Publishing a problem never exposes reference books or their metadata to members',async()=>{imported=await admin.post('problems/'+imported.id,{...imported,action:'publish'});const pub=await multilingual.get('problems/'+imported.id);assert.equal('references' in pub,false);assert.equal('legacy' in pub,false);assert.equal((await multilingual.get('problems')).items.some(p=>'references' in p),false);assert.equal((await multilingual.request(reference.url)).status,403);
+        const asset=pub.assets['yaglom-1-p13-1.pdf'];assert.ok(asset);assert.equal((await multilingual.request(asset.url)).headers.get('content-type'),'image/svg+xml');
+        imported=await admin.get('problems/'+imported.id+'?context=edit');const fresh=await admin.post('problems/'+imported.id+'/figures',{figure:'yaglom-1-p13-1',revision:imported.revision});assert.notEqual(fresh.asset.id,asset.id);assert.equal((await multilingual.request(asset.url)).status,200);assert.equal((await admin.get('problems/'+imported.id+'?context=edit')).assets['yaglom-1-p13-1.pdf'].id,fresh.asset.id);
+        const detached=await admin.request('problems/'+imported.id+'/assets/yaglom-1-p13-1.pdf',{revision:fresh.revision},'DELETE');assert.equal(detached.status,200);assert.equal((await multilingual.request(asset.url)).status,200);assert.equal((await admin.request(fresh.asset.url)).status,404);imported=await admin.get('problems/'+imported.id+'?context=edit');assert.equal((await multilingual.request(asset.pdf)).headers.get('content-type'),'application/pdf');assert.equal((await multilingual.request(attached.asset.url.replace('lpdj_asset','lpdj_figure')+'&format=svg')).status,403);});
     await check('Disabling new-user alerts preserves confirmation emails and account verification',async()=>{await php("update_option('lpdj_admin_email_alerts',['user'=>0,'submission'=>1]);");const count=(await alerts('user')).length;const muted=await new Client().boot();const token=await register(muted,'muted@example.test','Muted alert');await muted.post('auth/verify',token);await muted.login('muted@example.test');assert.equal((await alerts('user')).length,count);await php("update_option('lpdj_admin_email_alerts',['user'=>1,'submission'=>1]);");await php(`lpdj_admin_alert('user',${token.user});`);assert.equal((await alerts('user')).length,count);});
     await check('Mail transport failures are retried at most three times after the first attempt',async()=>{const output=JSON.parse(await php(`$id=wp_insert_user(['user_login'=>'mail-failure','user_email'=>'failure@example.test','user_pass'=>wp_generate_password(32),'role'=>'lpdj_member']);update_user_meta($id,'_lpdj_verification','verified');$fail=function(){return false;};add_filter('pre_wp_mail',$fail,99);lpdj_admin_alert('user',$id);for($i=0;$i<5;$i++){wp_clear_scheduled_hook('lpdj_retry_admin_alert',['user',$id,0]);do_action('lpdj_retry_admin_alert','user',$id,0);}remove_filter('pre_wp_mail',$fail,99);echo wp_json_encode(get_user_meta($id,'_lpdj_admin_email_alert',true));`));assert.equal(output.attempts,4);assert.equal(output.status,'failed');});
     await check('Legacy import itself does not notify administrators',async()=>{const count=(await alerts('submission')).length;await importLegacy();assert.equal((await alerts('submission')).length,count);});
     console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
-} finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});}
+} finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});await rm(figureDir,{recursive:true,force:true});}

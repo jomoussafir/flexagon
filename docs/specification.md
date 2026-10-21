@@ -19,7 +19,7 @@ delivery will be configured and tested. Mobile sign-in needs a supported integra
 ## Problems and publication
 
 LaTeX text with uploaded figures referenced through `\includegraphics`, captions and
-local `\label` / `\ref`; support SVG, PNG and JPEG with appropriate validation.
+local `\label` / `\ref`; support SVG, PNG, JPEG and one-page PDF with appropriate validation.
 Authors can add and name several language versions. Each version has its own title,
 LaTeX statement and approval. Display the only published language when just one exists;
 provide a selector with language names when several are published. Figures are shared.

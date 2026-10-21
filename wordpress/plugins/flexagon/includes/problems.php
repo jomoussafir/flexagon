@@ -21,7 +21,7 @@ function lpdj_present($data, $editor = false, $author = null) {
     $data['source'] = lpdj_source_name($data['source']);
     foreach ($data['versions'] as $key => &$version) $version['language'] = lpdj_language_name($key, $version);
     unset($version);
-    foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name]['url'] = lpdj_asset_url($asset['id']);
+    foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name] = lpdj_asset_present($asset);
     $data['progress'] = get_user_meta(get_current_user_id(), '_lpdj_progress_' . $data['id'], true) ?: 'unseen';
     $data['editable'] = $author === null ? lpdj_can_edit(lpdj_problem_post($data['id'])) : (lpdj_admin() || $author === get_current_user_id());
     if (!$editor) unset($data['reviewNote']);

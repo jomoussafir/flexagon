@@ -21,8 +21,11 @@ See [START-HERE.md](START-HERE.md) for a non-technical walkthrough.
 - English interface with WordPress email/password accounts, display names, email confirmation and password reset.
 - Member-only catalogue; private drafts, submissions and admin review.
 - User-named language versions, with independent approval and publication.
-- LaTeX editor/import, live preview, protected SVG/PNG/JPEG figures with
+- LaTeX editor/import, live preview, protected SVG/PNG/JPEG/PDF figures with
   `\includegraphics`, captions and local `\label` / `\ref` numbering.
+- A private library of vector figures of the scanned reference books (traced, then redrawn
+  cleanly), offered to administrators in the editor from the problem's own source pages
+  (see `tools/extract-figures.py` and `tools/redraw-figures.py`).
 - Categories, difficulty 1–5, sources, keywords, filters and per-language validation sorting.
 - A minimal home banner with About, Problem, Sign In and Create Account.
 - Personal Progress grids with solved/unsolved views, category/difficulty/source grouping,
@@ -49,7 +52,7 @@ hosted at https://github.com/jomoussafir/flexagon (branch `main`).
 | `android` | Reserved for a future Android app |
 | `shared/branding` | Original logo and favicon |
 | `shared/latex` | LaTeX/figure renderer and its regression tests |
-| `tools` | Local launcher, asset build, branding sync and deployment packaging |
+| `tools` | Local launcher, asset build, figure tracing, branding sync and deployment packaging |
 | `tests` | Isolated real-WordPress integration suite |
 | `docs` | Requirements, verification, hosting and migration notes |
 

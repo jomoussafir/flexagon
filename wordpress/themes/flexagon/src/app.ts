@@ -25,6 +25,8 @@ let progressItems:any[]=[];
 let progressFilters:ProgressFilters={groupBy:'category',mode:'solved',search:'',category:'',difficulty:'',source:''};
 let progressExpanded:Record<string,number>=Object.create(null);
 let readerOrigin='';
+// Administrator picker of figures traced from the reference books (private library).
+let library:{open:boolean,source:string,page:string,fresh:boolean}={open:false,source:'',page:'',fresh:true};
 let disposeReference:(()=>void)|undefined;
 const $ = (selector: string) => document.querySelector(selector) as any;
 const value = (id: string) => ($('#'+id) as HTMLInputElement)?.value ?? '';
@@ -178,7 +180,7 @@ function showReader() {
 async function editor(id:string) {
     if(!session.user){routeTo('/connexion');return;}
     const seq=routeSequence;problem=await api('problems/'+id+'?context=edit');if(seq!==routeSequence)return;
-    editorLanguage=Object.keys(problem.versions).find(k=>problem.versions[k].title)||Object.keys(problem.versions)[0];dirty=false;showEditor();
+    editorLanguage=Object.keys(problem.versions).find(k=>problem.versions[k].title)||Object.keys(problem.versions)[0];dirty=false;library={open:false,source:'',page:'',fresh:true};showEditor();
 }
 function collectEditor() {
     if(!$('#problem-title'))return;
@@ -200,12 +202,47 @@ function showEditor() {
     <div class="editor-title"><label for="language-name">Language name<input id="language-name" list="language-names" value="${esc(languageName(editorLanguage,v))}" maxlength="60" required dir="auto"></label><label for="problem-title">Title<input id="problem-title" value="${esc(v.title)}" maxlength="300" placeholder="Problem title" dir="auto"></label></div>
     <div class="editor-columns"><div class="latex-pane"><label for="latex">LATEX STATEMENT</label><textarea id="latex" dir="auto" spellcheck="false" placeholder="Write your statement here. Use $…$ for formulas.">${esc(v.latex)}</textarea><span class="field-help">Text, formulas and figures. <a href="#/aide" target="_blank">Supported commands ↗</a></span></div><div class="preview-pane"><p class="eyebrow">STATEMENT PREVIEW</p><div id="latex-preview" class="math-content" dir="auto"></div></div></div>
     ${session.user.admin?`<div class="approval"><label class="check"><input id="approved" type="checkbox" ${v.approved?'checked':''}><span>I have verified this ${esc(languageName(editorLanguage,v))} version and approve it for publication.</span></label><p class="field-help">Only checked versions will be published. Verify each language separately.</p></div>`:''}</section>
-    <section class="attachments"><div><h2>Figures</h2><p class="muted">Plain SVG, PNG or JPEG · Up to 2 MB per image</p><label class="button secondary small upload-label" for="figure-file">＋ Add figure<input id="figure-file" type="file" accept=".svg,.png,.jpg,.jpeg"></label></div><div class="asset-list">${Object.entries(p.assets).map(([name,a]:any)=>`<div class="asset"><img src="${esc(a.url)}" alt="${esc(name)}"><div><strong>${esc(name)}</strong><button class="text-link" data-insert="${esc(name)}">Insert into statement →</button></div></div>`).join('')||'<p class="muted">No figures attached.</p>'}</div></section>
+    <section class="attachments"><div><h2>Figures</h2><p class="muted">Plain SVG, PNG, JPEG or one-page PDF · Up to 2 MB per file</p><div class="figure-actions"><label class="button secondary small upload-label" for="figure-file">＋ Add figure<input id="figure-file" type="file" accept=".svg,.png,.jpg,.jpeg,.pdf"></label>${session.user.admin?`<button type="button" class="button secondary small" data-action="figure-library" aria-expanded="${library.open}" aria-controls="figure-library">Source figures ${library.open?'▴':'▾'}</button>`:''}</div></div><div class="asset-list">${Object.entries(p.assets).map(([name,a]:any)=>`<div class="asset"><img src="${esc(a.url)}" alt="${esc(name)}"><div><strong>${esc(name)}</strong><button class="text-link" data-insert="${esc(name)}">Insert into statement →</button>${a.pdf?`<a class="text-link" href="${esc(a.pdf)}" target="_blank" rel="noopener">PDF ↗</a>`:''}<button class="text-link danger" data-detach="${esc(name)}">Remove</button></div></div>`).join('')||'<p class="muted">No figures attached.</p>'}</div>${session.user.admin?`<div id="figure-library" class="figure-library" ${library.open?'':'hidden'}></div>`:''}</section>
     ${session.user.admin?`<label class="review-note" for="review-note">Note to author<textarea id="review-note" rows="3" placeholder="Describe any changes needed.">${esc(p.reviewNote||'')}</textarea></label>`:''}
     <div class="save-bar"><span id="save-state">${dirty?'Unsaved changes':'Last saved: '+date(p.updated)}</span><div class="button-row"><button class="button secondary" data-save="save">Save</button>${session.user.admin?'<button class="button" data-save="publish">Save & publish ↗</button><button class="text-link" data-save="return">Return to author</button>':'<button class="button" data-save="submit">Submit for review →</button>'}</div></div>
     <div class="editor-bottom"><button class="text-link" data-action="history">Revision history</button>${session.user.admin&&p.hasPublished?'<button class="text-link danger" data-save="unpublish">Unpublish</button>':!p.hasPublished?'<button class="text-link danger" data-action="delete-draft">Delete draft</button>':''}</div><div id="history"></div>`,session.user.admin?'review':'mine');
     $('#add-language-form').onsubmit=(e:Event)=>{e.preventDefault();addLanguage();};
-    preview();
+    preview();if(library.open)void drawLibrary();
+}
+async function drawLibrary() {
+    const host=$('#figure-library');if(!host)return;
+    host.innerHTML='<p class="muted">Loading source figures…</p>';
+    try{
+        const query=new URLSearchParams({problem:String(problem.id)});if(library.fresh)query.set('default','1');if(library.source)query.set('source',library.source);if(library.page)query.set('page',library.page);
+        const data=await api('figures?'+query);if(!$('#figure-library'))return;
+        if(library.fresh){library.fresh=false;library.source=data.source||'';library.page=data.page?String(data.page):'';}
+        if(!data.available){$('#figure-library').innerHTML='<p class="muted">No source figures are installed. Trace and redraw the reference books first (see START-HERE.md).</p>';return;}
+        const card=(f:any)=>{const attached=!!problem.assets[f.name];return `<button type="button" class="figure-card" data-figure="${esc(f.id)}" title="${esc(f.sourceTitle)} · PDF page ${f.page} · figure ${f.index}"><img src="${esc(f.url)}" alt="" loading="lazy"><span>${esc(f.source)} · p. ${f.page} · ${f.index}</span><span class="small muted">${attached?'Insert again (refreshes the copy)':'Insert into statement →'}</span></button>`;};
+        const source=data.sources.find((s:any)=>s.slug===library.source);
+        $('#figure-library').innerHTML=`<form id="figure-filter" class="figure-filter"><label>Book<select id="figure-source"><option value="">All books</option>${data.sources.map((s:any)=>option(s.slug,s.title,library.source)).join('')}</select></label><label>PDF page<select id="figure-page"><option value="">Any page</option>${(source?.pages||[]).map((n:number)=>option(String(n),'p. '+n,library.page)).join('')}</select></label><span class="small muted">${data.total} figure${data.total===1?'':'s'}${data.total>data.figures.length?' · first '+data.figures.length+' shown':''}</span></form><div class="figure-grid">${data.figures.map(card).join('')||'<p class="muted">No redrawn figure on this page yet. Choose another page or book.</p>'}</div>`;
+        $('#figure-source').onchange=()=>{library.source=value('figure-source');library.page='';void drawLibrary();};
+        $('#figure-page').onchange=()=>{library.page=value('figure-page');void drawLibrary();};
+    }catch(error:any){if($('#figure-library'))$('#figure-library').innerHTML=`<p class="notice error">${esc(error.message)}</p>`;}
+}
+// Insert a figure environment for an attached figure at the cursor of the statement.
+function insertFigure(name:string) {
+    const text=$('#latex');const label='fig:'+name.replace(/\.[^.]+$/,'');
+    text.setRangeText(`\n\n\\begin{figure}\n\\centering\n\\includegraphics[width=0.7\\linewidth]{${name}}\n\\caption{A caption}\n\\label{${label}}\n\\end{figure}\n`,text.selectionStart,text.selectionEnd,'end');
+    problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();text.focus();
+}
+// A PDF figure is displayed through a rendered image, so readers never load a PDF engine.
+async function pdfPreview(file:File):Promise<Blob> {
+    const pdfjs=await import(cfg.pdfAssets+'pdf.mjs');pdfjs.GlobalWorkerOptions.workerSrc=cfg.pdfAssets+'pdf.worker.mjs';
+    const loading=pdfjs.getDocument({data:await file.arrayBuffer(),isEvalSupported:false,cMapUrl:cfg.pdfAssets+'cmaps/',cMapPacked:true,standardFontDataUrl:cfg.pdfAssets+'standard_fonts/',wasmUrl:cfg.pdfAssets+'wasm/'});
+    try{
+        const doc=await loading.promise;if(doc.numPages!==1)throw Error('Use a one-page PDF containing only the figure.');
+        const page=await doc.getPage(1);const base=page.getViewport({scale:1});const viewport=page.getViewport({scale:Math.min(4,2400/Math.max(base.width,base.height))});
+        const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+        const context=canvas.getContext('2d')!;context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+        await page.render({canvas,canvasContext:context,viewport}).promise;
+        return await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Could not render the PDF preview.')),'image/png'));
+    }catch(error:any){throw Error(error?.message?.includes('one-page')?error.message:'This PDF could not be read. Export a one-page PDF figure.');}
+    finally{void loading.destroy();}
 }
 function addLanguage() {
     collectEditor();const name=value('new-language').trim();
@@ -233,14 +270,14 @@ function help() {shell(`${intro('LaTeX & figures')}<div class="help-grid"><secti
 
 \\[
   a^2 + b^2 = c^2
-\\]</pre><p>Inline formulas: <code>$…$</code> or <code>\\(…\\)</code>. Display formulas: <code>\\[…\\]</code> or <code>$$…$$</code>. Lists using <code>itemize</code> are supported.</p><p>For a price, write <code>\\$ 100</code>.</p></section><section class="panel"><h2>Figures in the statement</h2><p>Upload an image, then select “Insert into statement”.</p><pre>See figure~\\ref{fig:example}.
+\\]</pre><p>Inline formulas: <code>$…$</code> or <code>\\(…\\)</code>. Display formulas: <code>\\[…\\]</code> or <code>$$…$$</code>. Lists using <code>itemize</code> are supported.</p><p>For a price, write <code>\\$ 100</code>.</p></section><section class="panel"><h2>Figures in the statement</h2><p>Upload an image or a one-page PDF, then select “Insert into statement”.</p><pre>See figure~\\ref{fig:example}.
 
 \\begin{figure}
 \\centering
 \\includegraphics[width=0.7\\linewidth]{figure-1.svg}
 \\caption{A short caption}
 \\label{fig:example}
-\\end{figure}</pre><p>Numbering starts at 1 for each problem. Use the exact uploaded filename.</p></section><section class="panel"><h2>Image files</h2><p>Use plain SVG for geometric drawings, containing shapes and paths without scripts, CSS or external resources. Convert text to paths in your drawing software if needed.</p><p>PNG and JPEG are also supported. Limits: 2 MB per image, 20 figures per problem. Compile TikZ separately and export the drawing as SVG or PNG.</p></section><section class="panel"><h2>Languages</h2><p>Start with one language. Choose “Add a language” for another version, or type a language name of your own. Each version has its own statement and approval. Figures can be shared between versions.</p><h2>Review and publication</h2><ol><li>Save your draft.</li><li>Check the preview in each language.</li><li>Submit for review.</li><li>An administrator can edit, return or publish the verified versions.</li></ol><p>LaTeX is used for statements and mathematics. Arbitrary packages, custom macros and system commands are not executed.</p></section></div>`);}
+\\end{figure}</pre><p>Numbering starts at 1 for each problem. Use the exact uploaded filename.</p></section><section class="panel"><h2>Image files</h2><p>Use plain SVG for geometric drawings, containing shapes and paths without scripts, CSS or external resources. Convert text to paths in your drawing software if needed.</p><p>PNG and JPEG are also supported. A one-page PDF keeps the vector drawing: the page shows a rendered preview and links to the PDF. Limits: 2 MB per file, 20 figures per problem. Compile TikZ separately and export the drawing as PDF, SVG or PNG.</p><p>Administrators can also open <strong>Source figures</strong> in the editor: a gallery of redrawn figures from the reference books, opened on the problem’s own source page. Clicking a figure attaches it and inserts it into the statement.</p></section><section class="panel"><h2>Languages</h2><p>Start with one language. Choose “Add a language” for another version, or type a language name of your own. Each version has its own statement and approval. Figures can be shared between versions.</p><h2>Review and publication</h2><ol><li>Save your draft.</li><li>Check the preview in each language.</li><li>Submit for review.</li><li>An administrator can edit, return or publish the verified versions.</li></ol><p>LaTeX is used for statements and mathematics. Arbitrary packages, custom macros and system commands are not executed.</p></section></div>`);}
 function privacy(){shell(`${intro('Privacy & contributions')}<article class="panel prose"><h2>Your account</h2><p>Your email address is used to sign in and confirm your account. It is not shown to other members. Your display name appears beside your published problems. WordPress stores passwords as hashes.</p><h2>Your contributions</h2><p>Only submit statements and figures you are permitted to share. Include sources and credits. Submitting a problem authorises its review, correction and publication on this website and its associated apps.</p><p>Administrators may publish minor corrections directly. A substantial mathematical change should be returned to the contributor with an explanation.</p><h2>Private information</h2><p>Drafts are visible to their author and administrators. Members can read published versions. Your progress is private. Images are accessible only to people allowed to view the corresponding problem.</p><h2>Emails and account deletion</h2><p>New-problem notifications are optional and can be disabled in your profile. Deleting your account removes your profile and drafts. Published contributions remain available with anonymous attribution.</p><h2>Cookies</h2><p>The site uses the WordPress cookies required for sign-in. It includes no advertising or analytics tools.</p>${session.local?'<div class="notice soft">Local preview: no emails are sent. The site operator’s contact details and legal notice must be added before public launch.</div>':''}</article>`);}
 async function mailbox(){if(!session.user?.admin||!session.local){routeTo('/');return;}const mail=await api('mailbox');shell(`${intro('Test inbox')}<div class="mailbox">${mail.length?mail.map((m:any)=>`<article class="panel"><p class="small muted">${esc(String(m.to))} · ${date(m.date)}</p><h2>${esc(m.subject)}</h2><pre>${esc(m.message).replace(/https?:\/\/[^\s<&]+/g,(url:string)=>`<a href="${url}" target="_blank" rel="noopener">${url}</a>`)}</pre></article>`).join(''):empty('No emails yet','Confirmation emails for test accounts appear here.')}</div>`);}
 // English addresses used in emails and the iPhone client; the historic French names remain valid.
@@ -275,8 +312,9 @@ root.addEventListener('change',async(e)=>{
     try{
         if(target.id==='tex-file'&&target.files?.[0]){if(target.files[0].size>60000)throw Error('The .tex file must be under 60 KB.');let text=await target.files[0].text();const body=/\\begin\{document\}([\s\S]*?)\\end\{document\}/.exec(text);if(body)text=body[1].trim();$('#latex').value=text;problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();}
         if((target.id==='figure-file'||target.id==='avatar-file')&&target.files?.[0]){
-            if(target.files[0].size>2*1024*1024)throw Error('Each image must be no larger than 2 MB.');
-            const isFigure=target.id==='figure-file';if(isFigure)collectEditor();const data=new FormData();data.append('file',target.files[0]);data.append('problem',isFigure?String(problem.id):'0');if(isFigure)data.append('revision',String(problem.revision));target.disabled=true;
+            const file=target.files[0];if(file.size>2*1024*1024)throw Error('Each file must be no larger than 2 MB.');
+            const isFigure=target.id==='figure-file';if(isFigure)collectEditor();const data=new FormData();data.append('file',file);data.append('problem',isFigure?String(problem.id):'0');if(isFigure)data.append('revision',String(problem.revision));target.disabled=true;
+            if(isFigure&&/\.pdf$/i.test(file.name)){toast('Rendering the PDF preview…');data.append('preview',await pdfPreview(file),file.name.replace(/\.pdf$/i,'.png'));}
             const uploaded=await api('assets',data);
             if(isFigure){problem.assets[uploaded.name]=uploaded.asset;problem.revision=uploaded.revision;showEditor();toast('Figure added. Select “Insert into statement”.');}
             else{avatar=uploaded.asset.id;const existing=$('#avatar-preview')||$('#avatar-placeholder');existing.outerHTML=`<img id="avatar-preview" src="${esc(uploaded.asset.url)}" alt="New profile image">`;toast('Image uploaded. Save your preferences.');}
@@ -284,7 +322,7 @@ root.addEventListener('change',async(e)=>{
     }catch(error:any){message(error.message,true);}finally{target.disabled=false;}
 });
 root.addEventListener('click',async(e)=>{
-    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-progress],[data-source],[data-progress-mode],[data-group-by],[data-more-group]');if(!b)return;
+    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-figure],[data-detach],[data-progress],[data-source],[data-progress-mode],[data-group-by],[data-more-group]');if(!b)return;
     try{
         if(b.dataset.progressMode){progressFilters.mode=b.dataset.progressMode as any;progressExpanded=Object.create(null);drawProgress();return;}
         if(b.dataset.groupBy){progressFilters.groupBy=b.dataset.groupBy as any;progressExpanded=Object.create(null);drawProgress();return;}
@@ -295,7 +333,19 @@ root.addEventListener('click',async(e)=>{
         if(b.dataset.save){await saveProblem(b.dataset.save);return;}
         if(b.dataset.readerLang){language=b.dataset.readerLang;showReader();return;}
         if(b.dataset.editorLang){collectEditor();editorLanguage=b.dataset.editorLang;showEditor();return;}
-        if(b.dataset.insert){const text=$('#latex');const label='fig:'+b.dataset.insert.replace(/\.[^.]+$/,'');text.setRangeText(`\n\n\\begin{figure}\n\\centering\n\\includegraphics[width=0.7\\linewidth]{${b.dataset.insert}}\n\\caption{A caption}\n\\label{${label}}\n\\end{figure}\n`,text.selectionStart,text.selectionEnd,'end');problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();text.focus();return;}
+        if(b.dataset.action==='figure-library'){collectEditor();library.open=!library.open;showEditor();return;}
+        if(b.dataset.figure){
+            // Always attach: a copy attached earlier is refreshed from the current library file.
+            collectEditor();b.setAttribute('disabled','');const attached=await api('problems/'+problem.id+'/figures',{figure:b.dataset.figure,revision:problem.revision});problem.assets[attached.name]=attached.asset;problem.revision=attached.revision;showEditor();
+            insertFigure(attached.name);toast('Figure inserted into the statement.');return;
+        }
+        if(b.dataset.insert){insertFigure(b.dataset.insert);return;}
+        if(b.dataset.detach){
+            const name=b.dataset.detach;const used=new RegExp('\\\\includegraphics(?:\\[[^\\]]*\\])?\\{'+name.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')+'\\}');
+            if(!confirm(`Remove ${name} from this problem?`+(used.test(value('latex'))?' The statement still refers to it; delete that figure block afterwards.':'')))return;
+            collectEditor();b.setAttribute('disabled','');const removed=await api('problems/'+problem.id+'/assets/'+encodeURIComponent(name),{revision:problem.revision},'DELETE');
+            delete problem.assets[name];problem.revision=removed.revision;showEditor();toast('Figure removed.');return;
+        }
         if(b.dataset.progress){await api('problems/'+problem.id+'/progress',{progress:b.dataset.progress});problem.progress=b.dataset.progress;showReader();return;}
         if(b.dataset.source){filters.source=b.dataset.source;$('#source').value=b.dataset.source;drawList();return;}
         if(b.dataset.action==='new'){if(!session.user){routeTo('/connexion');return;}b.setAttribute('disabled','');const created=await api('problems',{});routeTo('/editer/'+created.id);}

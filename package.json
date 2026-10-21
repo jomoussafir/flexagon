@@ -1,7 +1,7 @@
 {
   "name": "flexagon",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "description": "Shared repository for the WordPress website, iPhone app and future Android app.",
   "engines": {
@@ -15,6 +15,9 @@
     "dev": "npm start",
     "test:web": "node_modules/node/bin/node tests/wordpress.test.mjs",
     "package:web": "python3 tools/package-web.py",
+    "figures:extract": "python3 tools/extract-figures.py",
+    "figures:redraw": "python3 tools/redraw-figures.py",
+    "figures:encrypt": "node tools/encrypt-ovh-figures.mjs",
     "test:progress": "node --test tests/progress.test.mjs"
   },
   "devDependencies": {

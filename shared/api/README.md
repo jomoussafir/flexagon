@@ -18,7 +18,10 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 | `GET /problems/{id}/reference?index=0&page=…` | Admin-only source PDF metadata; page defaults to the recorded occurrence |
 | `GET /problems/{id}/history` | Author/admin revision history |
 | `POST /problems/{id}/progress` | Personal unseen/bookmarked/attempted/solved state |
-| `POST /assets` | Multipart file, problem ID, current revision; problem 0 for avatar |
+| `POST /assets` | Multipart file, problem ID, current revision; problem 0 for avatar. A `.pdf` file needs a `preview` image part |
+| `GET /figures?problem=…&source=…&page=…&default=1` | Admin-only private library of redrawn reference-book figures; with `default=1` the filter opens on the problem's own source page (`source`, `page` in the response) |
+| `DELETE /problems/{id}/assets/{name}` | Detach a figure from the draft at the current `revision`; the record is deleted unless the published snapshot still shows it |
+| `POST /problems/{id}/figures` | Admin-only: attach library figure `figure` at the current `revision` as asset `<figure-id>.pdf` |
 | `POST /profile` | Pseudo, notifications, optional owned avatar ID |
 | `DELETE /account` | Member account deletion, requiring current password |
 
@@ -29,7 +32,7 @@ API responses are not public cache entries.
 
 A draft contains `id`, `revision`, `state`, `category`, `difficulty` (1–5), `source`,
 `keywords`, `versions` (language key → `language`, `title`, `latex`, `approved`), `assets` (filename →
-ID/mime/url), `reviewNote`, `updated` and `author` (public pseudonym only).
+ID/mime/url, plus `pdf` for a PDF figure whose `url` is its preview image), `reviewNote`, `updated` and `author` (public pseudonym only).
 
 Versions support 1–20 user-named languages, including languages outside the suggested
 list. Keys are stable lowercase identifiers (`en`, `es`, `pt-br`, or `und-xxxxxxxx`

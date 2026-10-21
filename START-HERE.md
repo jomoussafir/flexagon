@@ -37,12 +37,48 @@ To add a new problem:
 3. Write the first version or import a `.tex` file. Set its **Language name**.
    Use **Add a language** to choose or type another language; each version has
    its own title and statement, and all versions share the uploaded figures.
-4. Upload SVG, PNG or JPEG figures and use **Insert into statement**.
+4. Upload SVG, PNG, JPEG or one-page PDF figures and use **Insert into statement**.
+   As administrator, **Source figures** under Figures lists the redrawn vector figures
+   of this problem's book page(s); click one to attach it, then insert it.
+   Attached book figures are named like `colossal-p25-1.pdf`; the page shows the
+   traced drawing and a **PDF** link opens the vector file.
 5. Save a draft, or check the verified box in each ready language and click
    **Save & publish** as administrator.
 
 A normal member sees **Submit for review** instead of publication controls.
 The **Admin review** page shows submitted problems and their language approval status.
+
+## Figures from the reference books
+
+The books in `private-data/references` are scans, so their figures are traced into
+vector PDF and SVG files by `tools/extract-figures.py` (needs Homebrew `poppler` and
+`potrace`, plus Pillow, numpy and scipy for `python3`). Examples:
+
+```sh
+npm run figures:extract -- --source colossal --pages 24-32,138
+npm run figures:extract -- --source colossal --problems
+npm run figures:extract -- --all --problems
+```
+
+`--problems` traces every page cited by an imported problem. Results go to
+`private-data/figures/<book>/`, with a `review/` folder containing one image per page
+showing the detected boxes in red: check it when a figure looks incomplete or merged.
+Rerunning a page replaces its traced figures.
+
+Traced figures keep the look of the scan, so **Source figures** offers only figures that
+have been redrawn cleanly. The drawings live in `tools/figures/<book>.py`, one small
+function per figure (square, circles, arrows, labels…); `tools/redraw-figures.py` runs
+them and writes `private-data/figures/<book>-redrawn/`:
+
+```sh
+npm run figures:redraw                      # every redrawing
+npm run figures:redraw -- colossal-p138-2   # one figure
+```
+
+To add a figure, trace its page, look at the traced file, then add a drawing function
+for its id in the book's module and rerun the tool (`--book moscow` for one book). Pure
+illustrations (people, animals, scenery) and plain text passages are not redrawn. Figures are private, like the books; they are not
+in Git and must be uploaded to OVH separately (see docs/ovh-setup.md).
 
 ## Navigation and personal progress
 

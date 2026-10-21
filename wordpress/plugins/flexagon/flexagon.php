@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.2
+ * Version: 0.2.3
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.2');
+define('LPDJ_VERSION', '0.2.3');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
 // The predecessor's independently hosted review/PDF viewer. Override or set to '' in
@@ -21,6 +21,7 @@ require_once __DIR__ . '/includes/admin-alerts.php';
 require_once __DIR__ . '/includes/assets.php';
 require_once __DIR__ . '/includes/import.php';
 require_once __DIR__ . '/includes/references.php';
+require_once __DIR__ . '/includes/figures.php';
 
 function lpdj_activate() {
     add_role('lpdj_member', 'Member', ['read' => true]);
@@ -63,6 +64,9 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)/progress', 'POST', 'lpdj_progress_save');
     lpdj_route('/problems/(?P<id>\d+)/reference', 'GET', 'lpdj_problem_reference', 'lpdj_admin_permission');
     lpdj_route('/assets', 'POST', 'lpdj_asset_upload');
+    lpdj_route('/problems/(?P<id>\d+)/assets/(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]{0,104})', 'DELETE', 'lpdj_asset_detach');
+    lpdj_route('/figures', 'GET', 'lpdj_figures_list', 'lpdj_admin_permission');
+    lpdj_route('/problems/(?P<id>\d+)/figures', 'POST', 'lpdj_figure_attach', 'lpdj_admin_permission');
     lpdj_route('/mailbox', 'GET', function () { return array_reverse(get_option('_lpdj_local_mail', [])); }, function () {
         return lpdj_local() && lpdj_admin_permission() === true ? true : lpdj_error('Unavailable.', 404);
     });

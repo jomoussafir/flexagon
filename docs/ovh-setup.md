@@ -203,6 +203,29 @@ WordPress database. Losing the key makes the encrypted files unrecoverable.
 Do not put reference books or the key in WordPress Media, the theme, or Git.
 The ordinary local preview continues using its original private plaintext library.
 
+## Source figure library — prepared, not yet uploaded
+
+Figures traced from the reference books (`tools/extract-figures.py`) form a second
+private library, read by plugin 0.2.3+ through `LPDJ_FIGURE_DIR`. It is not on OVH yet.
+To deploy it:
+
+1. Trace the pages you need locally (`npm run figures:extract -- --all --problems`),
+   check `private-data/figures/review/`, and redraw the figures to offer
+   (`npm run figures:redraw`); only redrawn figures appear in the editor.
+2. Run `npm run figures:encrypt`. It reuses `private-data/ovh-transfer/storage-key`
+   and writes `private-data/ovh-transfer/encrypted/figures/` plus `figures-audit.json`.
+3. Over SFTP (`tools/Connect OVH.command`) upload that directory to
+   `/wp-content/lpdj-private-storage/figures/` with permissions 700/600, keeping the
+   `manifest.json.lpdj` and per-book subdirectories.
+4. Add `define('LPDJ_FIGURE_DIR', LPDJ_TRANSFER_DIR . '/figures');` to
+   `/wp-content/lpdj-private-storage.php`.
+5. Install the plugin and theme packages that contain the figure picker, then open a
+   problem in the editor and check **Source figures**.
+
+Figures attached to problems are copied into the WordPress database like uploaded
+images, so the migrated catalogue carries them even without the library. Re-upload
+the encrypted directory after tracing more pages; the audit file lists SHA-256 sums.
+
 ## Data and next integrations
 
 Production uses the host's standard WordPress MySQL database. The local preview uses

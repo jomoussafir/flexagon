@@ -8,9 +8,20 @@ published snapshots are separate. A revision counter plus per-record lock reject
 stale saves and uploads. Admins can publish only checked language versions; members cannot
 forge approval or edit another member's draft. Approval survives the first Save & Publish.
 
-Figure uploads accept a conservative SVG subset and validated PNG/JPEG, with 2 MiB per
-image, 20 figures per problem and 200 image records per account. Files are served through
-an authenticated endpoint. No public `wp-content/uploads` paths expose private figures.
+Figure uploads accept a conservative SVG subset, validated PNG/JPEG and one-page PDFs
+(static drawings only: catalog dictionaries with actions, scripts, links or embedded files
+are refused, and a PDF needs its rendered preview image), with 2 MiB per file, 20 figures
+per problem and 200 image records per account. Files are served through an authenticated
+endpoint; `format=pdf` returns the vector master. No public `wp-content/uploads` paths
+expose private figures.
+
+The private figure library (`LPDJ_FIGURE_DIR`, defaulting to a `figures` directory
+beside the reference directory) is traced from the reference books by
+`tools/extract-figures.py` and redrawn by `tools/redraw-figures.py`; only manifest
+entries with a `redrawn` block are served. Administrators list it, preview it and attach entries to a
+problem through `GET /figures` and `POST /problems/{id}/figures`; attaching copies the
+PDF and SVG into a protected asset named `<figure-id>.pdf`. Like the books, the library
+is never served to members; encrypted storage works as for the references.
 
 WordPress mail is used for confirmation/reset and opted-in first-publication notices.
 Administrator alerts are enabled by default under **Settings → General →

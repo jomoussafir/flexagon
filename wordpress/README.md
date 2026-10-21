@@ -15,7 +15,9 @@ the plugin's registration form applies verification and the correct role.
 
 The public theme is French; problem content supports French and English separately.
 Images are stored as bounded, base64-encoded records in the database, not publicly
-accessible Media Library files. Access is checked on each image request. This simple
+accessible Media Library files. A PDF figure keeps its vector master and a preview
+image (the traced SVG of a library figure, or a PNG the browser renders at upload) so
+reading pages only ever load ordinary images. Access is checked on each image request. This simple
 storage model is suitable for an initial small community; large image collections
 will need protected object storage or a private filesystem adapter later.
 

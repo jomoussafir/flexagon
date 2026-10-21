@@ -6,6 +6,16 @@
   never reach a package; `package-web.py` also refuses Finder duplicates such as `pdf 2.mjs`.
 - `package-web.py`: deployment ZIPs containing only the plugin and theme.
 - `sync_branding.py`: copy/check the common logo for iOS and WordPress.
+- `extract-figures.py`: trace the figures of the scanned reference books into vector
+  PDF/SVG pairs under `private-data/figures/`, with a manifest and per-page review
+  images of the detected boxes; the traced files are the reference for redrawing. Needs poppler,
+  potrace, Pillow, numpy and scipy. See START-HERE.md for the page selection options.
+- `redraw-figures.py` with `figures/<book>.py`: clean vector redrawings (SVG + PDF, no
+  external library) of traced figures, one drawing function per figure id, recorded in the
+  manifest's `redrawn` field and cropped to their content. The website's Source figures
+  panel lists only figures with a redrawing.
+- `encrypt-ovh-figures.mjs`: encrypt that library with the existing OVH storage key into
+  `private-data/ovh-transfer/encrypted/figures/` for upload; it uploads nothing.
 
 Run these through the root package scripts. `Open Website.command` is the Finder shortcut.
 The local database and credentials are excluded from source control. Migration of the
