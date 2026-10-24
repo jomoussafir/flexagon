@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.4
+ * Version: 0.2.5
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.4');
+define('LPDJ_VERSION', '0.2.5');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
 // The predecessor's independently hosted review/PDF viewer, now retired: the default
