@@ -63,6 +63,7 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)', 'DELETE', 'lpdj_problem_delete');
     lpdj_route('/problems/(?P<id>\d+)/history', 'GET', 'lpdj_problem_history');
     lpdj_route('/problems/(?P<id>\d+)/progress', 'POST', 'lpdj_progress_save');
+    lpdj_route('/problems/(?P<id>\d+)/triage', 'POST', 'lpdj_triage_save', 'lpdj_admin_permission');
     lpdj_route('/problems/(?P<id>\d+)/reference', 'GET', 'lpdj_problem_reference', 'lpdj_admin_permission');
     lpdj_route('/assets', 'POST', 'lpdj_asset_upload');
     lpdj_route('/problems/(?P<id>\d+)/assets/(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]{0,104})', 'DELETE', 'lpdj_asset_detach');

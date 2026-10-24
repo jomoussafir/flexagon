@@ -7,16 +7,20 @@ const cfg = window.LPDJ;
 let session = cfg.session;
 const root = document.querySelector('#app')!;
 const categories: Record<string,string> = {Algebra:'Algebra',Geometry:'Geometry','Number Theory':'Number Theory',Combinatorics:'Combinatorics',Logic:'Logic'};
-const progress: Record<string,string> = {unseen:'Unseen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved'};
-const progressModes:Record<ProgressFilters['mode'],string>={all:'All',unseen:'Unseen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved',unsolved:'Unsolved'};
+const progress: Record<string,string> = {unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved'};
+const progressModes:Record<ProgressFilters['mode'],string>={all:'All',unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved',unsolved:'Unsolved'};
 const statuses: Record<string,string> = {draft:'Draft',submitted:'Awaiting review',returned:'Changes requested',published:'Published'};
+const triages: Record<string,string> = {unseen:'Unseen',nice:'Nice',later:'Later'};
+// Custom sort orders (not alphabetical); category/difficulty/source/language are filters, not sorts.
+const triageSortOrder = ['nice','unseen','later'];
+const statusSortOrder = ['returned','draft','submitted','published'];
 const actions: Record<string,string> = {save:'Saved',submit:'Submitted',publish:'Published',return:'Returned to author',unpublish:'Unpublished'};
 const knownLanguages:Record<string,string> = {en:'English',fr:'French',es:'Spanish',de:'German',it:'Italian',pt:'Portuguese',ar:'Arabic',zh:'Chinese',ja:'Japanese',ko:'Korean',ru:'Russian',uk:'Ukrainian',pl:'Polish',nl:'Dutch',sv:'Swedish',da:'Danish',no:'Norwegian',fi:'Finnish',el:'Greek',tr:'Turkish',he:'Hebrew',fa:'Persian',hi:'Hindi',bn:'Bengali',ta:'Tamil',vi:'Vietnamese',id:'Indonesian',ro:'Romanian',hu:'Hungarian',cs:'Czech',sw:'Swahili',la:'Latin'};
 const languageName=(key:string,v:any)=>v?.language||knownLanguages[key]||key.toUpperCase();
 const languageCode=(key:string,v:any)=>Object.entries(knownLanguages).find(([,name])=>name.toLocaleLowerCase()===languageName(key,v).toLocaleLowerCase())?.[0]||languageName(key,v).slice(0,3);
 const languageApproved=(p:any,name:string)=>Object.entries(p.versions).some(([key,v]:any)=>languageName(key,v)===name&&v.approved);
 let listing: any = null, problem: any = null, language = 'en', editorLanguage = 'en', dirty = false, routeSequence = 0;
-let filters = {search:'',category:'',difficulty:'',source:'',progress:'',status:'',sort:'newest'};
+let filters = {search:'',category:'',difficulty:'',source:'',progress:'',status:'',triage:'',sort:'newest'};
 let lastRoute = location.hash || '#/';
 let avatar = 0;
 let listPage = 1;
@@ -25,6 +29,10 @@ let progressItems:any[]=[];
 let progressFilters:ProgressFilters={groupBy:'category',mode:'solved',search:'',category:'',difficulty:'',source:''};
 let progressExpanded:Record<string,number>=Object.create(null);
 let readerOrigin='';
+// Remember exactly where the member was in a list when they opened a problem,
+// so the problem page can offer a "back to problem list" link that restores it.
+let listReturn:{hash:string,filters:any,page:number,scroll:number}|null=null;
+let backRestore=false;
 // Administrator picker of figures traced from the reference books (private library).
 let library:{open:boolean,source:string,page:string,fresh:boolean}={open:false,source:'',page:'',fresh:true};
 let disposeReference:(()=>void)|undefined;
@@ -72,29 +80,35 @@ function about() { shell('<article class="manifesto"><p>Curated list of mathemat
 function gated(section='Problems', destination='/problems') {
     shell(intro(section)+empty('Sign in to continue','',`<a class="button" href="#/connexion?next=${encodeURIComponent(destination)}">Sign In</a> <a class="button secondary" href="#/inscription">Create Account</a>`),section==='Progress'?'progress':'collection');
 }
-async function collection(scope='published') {
+async function collection(scope='published', restore=false) {
     if(!session.user){gated();return;}
     if(scope==='review'&&!session.user.admin){shell(empty('Restricted access','This page is for administrators.'));return;}
+    if(!(scope==='review'?['newest','title','triage','status']:['newest','title']).includes(filters.sort))filters.sort='newest';
     const seq=routeSequence;
     const heading=scope==='mine'?'':intro(scope==='published'?'Problems':'Admin review');
     shell(heading+'<p class="loading">Loading…</p>',scope==='published'?'collection':scope==='mine'?'mine':'review');
     listing=await api('problems?scope='+scope);if(seq!==routeSequence)return;listPage=1;
     const total=listing.published, pending=listing.items.filter((p:any)=>p.state==='submitted').length;
+    const admin=!!session.user?.admin;
     const sourceCounts:Record<string,number> = scope==='published'?listing.sources:listing.items.reduce((counts:any,p:any)=>{counts[p.source]=(counts[p.source]||0)+1;return counts;},{});
-    const summary=scope==='mine'?'':`<section class="stats"><div><strong>${(scope==='published'?total:listing.total).toLocaleString('en-GB')}</strong><span>${scope==='published'?'published problems':'submissions'}</span></div><div><strong>${(scope==='review'?pending:Object.keys(listing.sources).length).toLocaleString('en-GB')}</strong><span>${scope==='review'?'awaiting review':'sources'}</span></div><div><strong>1–5</strong><span>difficulty levels</span></div></section>`;
+    // The source is an internal curation detail: members never see it.
+    const secondStat=scope==='review'?`<div><strong>${pending.toLocaleString('en-GB')}</strong><span>awaiting review</span></div>`:admin?`<div><strong>${Object.keys(listing.sources).length.toLocaleString('en-GB')}</strong><span>sources</span></div>`:'';
+    const summary=scope==='mine'?'':`<section class="stats"><div><strong>${(scope==='published'?total:listing.total).toLocaleString('en-GB')}</strong><span>${scope==='published'?'published problems':'submissions'}</span></div>${secondStat}<div><strong>1–5</strong><span>difficulty levels</span></div></section>`;
     shell(heading+summary+`
-    ${listing.total&&scope!=='mine'?`<div class="source-counts">${Object.entries(sourceCounts).sort(([a],[b])=>sourceOrder(a,b)).map(([s,c])=>`<button data-source="${esc(s)}">${esc(s)} <b>${c}</b></button>`).join('')}</div>`:''}
+    ${listing.total&&scope!=='mine'&&admin?`<div class="source-counts">${Object.entries(sourceCounts).sort(([a],[b])=>sourceOrder(a,b)).map(([s,c])=>`<button data-source="${esc(s)}">${esc(s)} <b>${c}</b></button>`).join('')}</div>`:''}
     <section class="collection"><div class="section-label"><h2>${scope==='published'?'Browse problems':scope==='mine'?'Your problems':'All submissions'}</h2>${scope==='published'?'<button class="text-link" data-action="pick">Pick one ↗</button>':''}</div>
-    <div class="filters"><label class="search-label" for="search">Search<input id="search" type="search" placeholder="Title, keyword…" value="${esc(filters.search)}"></label>
+    <div class="filters ${scope==='review'?'filters-review':''}"><label class="search-label" for="search">Search<input id="search" type="search" placeholder="Title, keyword…" value="${esc(filters.search)}"></label>
     <label for="category">Category<select id="category">${option('','All',filters.category)}${Object.entries(categories).map(([v,l])=>option(v,l,filters.category)).join('')}</select></label>
     <label for="difficulty">Difficulty<select id="difficulty">${option('','All levels',filters.difficulty)}${[1,2,3,4,5].map(n=>option(String(n),`Level ${n}`,filters.difficulty)).join('')}</select></label>
-    <label for="source">Source<select id="source">${option('','All sources',filters.source)}${[...new Set(listing.items.map((p:any)=>p.source))].sort(sourceOrder).map((s:any)=>option(s,s,filters.source)).join('')}</select></label>
+    ${admin?`<label for="source">Source<select id="source">${option('','All sources',filters.source)}${[...new Set(listing.items.map((p:any)=>p.source))].sort(sourceOrder).map((s:any)=>option(s,s,filters.source)).join('')}</select></label>`:''}
+    ${scope==='review'?`<label for="triage">Triage<select id="triage">${option('','All',filters.triage)}${Object.entries(triages).map(([v,l])=>option(v,l,filters.triage)).join('')}</select></label>`:''}
     <label for="${scope==='published'?'progress':'status'}">${scope==='published'?'Progress':'Status'}<select id="${scope==='published'?'progress':'status'}">${option('','All',scope==='published'?filters.progress:filters.status)}${Object.entries(scope==='published'?progress:statuses).map(([v,l])=>option(v,l,scope==='published'?filters.progress:filters.status)).join('')}</select></label></div>
-    <div class="list-tools"><span id="result-count" aria-live="polite"></span><label for="sort">Sort by <select id="sort">${[['newest','Newest'],['difficulty-asc','Difficulty: low to high'],['difficulty-desc','Difficulty: high to low'],['title','Title'],...[...new Set(listing.items.flatMap((p:any)=>Object.entries(p.versions).map(([key,v])=>languageName(key,v))))].sort().map(name=>['language:'+name,'Verified '+name])].map(([v,l])=>option(v,l,filters.sort)).join('')}</select></label><button class="text-link" data-action="reset-filters">Clear filters</button></div><div id="problem-list" data-scope="${scope}"></div></section>`,scope==='published'?'collection':scope==='mine'?'mine':'review');
+    <div class="list-tools"><span id="result-count" aria-live="polite"></span><label for="sort">Sort by <select id="sort">${[['newest','Newest'],['title','Title'],...(scope==='review'?[['triage','Triage'],['status','Status']]:[])].map(([v,l])=>option(v,l,filters.sort)).join('')}</select></label><button class="text-link" data-action="reset-filters">Clear filters</button></div><div id="problem-list" data-scope="${scope}"></div></section>`,scope==='published'?'collection':scope==='mine'?'mine':'review');
     drawList();
+    if(restore&&listReturn){if(listReturn.page>1){listPage=listReturn.page;drawList(false);}const y=listReturn.scroll;requestAnimationFrame(()=>window.scrollTo(0,y));}
 }
 function filtered() {
-    return listing.items.filter((p:any)=>!filters.search||[...Object.values(p.versions).map((v:any)=>v.title),...p.keywords].join(' ').toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())).filter((p:any)=>!filters.category||p.category===filters.category).filter((p:any)=>!filters.difficulty||p.difficulty===Number(filters.difficulty)).filter((p:any)=>!filters.source||p.source===filters.source).filter((p:any)=>!filters.progress||p.progress===filters.progress).filter((p:any)=>!filters.status||p.state===filters.status).sort((a:any,b:any)=>filters.sort==='title'?titleOf(a).localeCompare(titleOf(b),'en'):filters.sort==='difficulty-asc'?a.difficulty-b.difficulty:filters.sort==='difficulty-desc'?b.difficulty-a.difficulty:filters.sort.startsWith('language:')?Number(languageApproved(b,filters.sort.slice(9)))-Number(languageApproved(a,filters.sort.slice(9))):b.id-a.id);
+    return listing.items.filter((p:any)=>!filters.search||[...Object.values(p.versions).map((v:any)=>v.title),...p.keywords].join(' ').toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())).filter((p:any)=>!filters.category||p.category===filters.category).filter((p:any)=>!filters.difficulty||p.difficulty===Number(filters.difficulty)).filter((p:any)=>!filters.source||p.source===filters.source).filter((p:any)=>!filters.progress||p.progress===filters.progress).filter((p:any)=>!filters.status||p.state===filters.status).filter((p:any)=>!filters.triage||(p.triage||'unseen')===filters.triage).sort((a:any,b:any)=>{const s=filters.sort,byTitle=titleOf(a).localeCompare(titleOf(b),'en');return s==='title'?byTitle:s==='triage'?triageSortOrder.indexOf(a.triage||'unseen')-triageSortOrder.indexOf(b.triage||'unseen')||byTitle:s==='status'?statusSortOrder.indexOf(a.state)-statusSortOrder.indexOf(b.state)||byTitle:b.id-a.id;});
 }
 function referenceLinks(p:any, detailed=false) {
     if(!p.references?.length)return '';
@@ -116,7 +130,7 @@ function drawList(reset=true) {
     const pages=Math.max(1,Math.ceil(all.length/pageSize));listPage=Math.min(listPage,pages);
     const items=all.slice((listPage-1)*pageSize,listPage*pageSize);
     $('#result-count').textContent=`${all.length.toLocaleString('en-GB')} ${scope==='mine'?'submission':'problem'}${all.length!==1?'s':''}`;
-    $('#problem-list').innerHTML=items.length?`<div class="problem-table">${items.map((p:any)=>`<div class="review-row"><a class="problem-row" href="#/${scope==='published'?'probleme':'editer'}/${p.id}"><span class="problem-name"><strong>${esc(titleOf(p))}</strong><small>${esc(categories[p.category])} <span>·</span> ${esc(p.source)} ${scope!=='published'?`<span>·</span> ${esc(p.author)}`:''}</small></span><span class="level-label">Level ${p.difficulty}</span>${langSquares(p)}<span class="status ${scope==='published'?p.progress:p.state}">${scope==='published'?progress[p.progress]:statuses[p.state]}</span><span class="row-arrow">↗</span></a>${scope==='review'?referenceLinks(p):''}</div>`).join('')}</div>`:listing.total?empty('No results','Try different filters.','<button class="button secondary" data-action="reset-filters">Clear filters</button>'):empty(scope==='published'?'No published problems':'No submissions','');
+    $('#problem-list').innerHTML=items.length?`<div class="problem-table">${items.map((p:any)=>`<div class="review-row"><a class="problem-row" href="#/${scope==='published'?'probleme':'editer'}/${p.id}"><span class="problem-name"><strong>${esc(titleOf(p))}</strong><small>${esc(categories[p.category])}${session.user?.admin?` <span>·</span> ${esc(p.source)}`:''}${scope!=='published'?` <span>·</span> ${esc(p.author)}`:''}</small></span><span class="level-label">Level ${p.difficulty}</span>${langSquares(p)}<span class="status ${scope==='published'?p.progress:p.state}">${scope==='published'?progress[p.progress]:statuses[p.state]}</span><span class="row-arrow">↗</span></a>${scope==='review'?`<div class="review-row-tools"><div class="segmented triage-buttons" role="group" aria-label="Triage">${Object.entries(triages).map(([key,label])=>`<button data-triage="${key}" data-triage-id="${p.id}" aria-pressed="${(p.triage||'unseen')===key}">${label}</button>`).join('')}</div>${referenceLinks(p)}</div>`:''}</div>`).join('')}</div>`:listing.total?empty('No results','Try different filters.','<button class="button secondary" data-action="reset-filters">Clear filters</button>'):empty(scope==='published'?'No published problems':'No submissions','');
     if(pages>1)$('#problem-list').insertAdjacentHTML('beforeend',`<nav class="pagination" aria-label="Problem list pages"><button class="button secondary small" data-action="previous-page" ${listPage===1?'disabled':''}>← Previous</button><span>Page ${listPage} of ${pages}</span><button class="button secondary small" data-action="next-page" ${listPage===pages?'disabled':''}>Next →</button></nav>`);
 }
 async function progressPage() {
@@ -127,11 +141,11 @@ async function progressPage() {
     progressItems=data.items;
     shell(`${intro('Progress')}<div id="progress-summary" class="stats"></div>
     <section class="progress-controls"><div><span class="control-label">Show</span><div class="segmented progress-status-options" role="group" aria-label="Progress status">${Object.entries(progressModes).map(([key,label])=>`<button data-progress-mode="${key}" aria-pressed="${progressFilters.mode===key}">${label}</button>`).join('')}</div></div>
-    <div><span class="control-label">Group by</span><div class="segmented" role="group" aria-label="Group problems by">${[['category','Category'],['difficulty','Difficulty'],['source','Source']].map(([key,label])=>`<button data-group-by="${key}" aria-pressed="${progressFilters.groupBy===key}">${label}</button>`).join('')}</div></div></section>
+    <div><span class="control-label">Group by</span><div class="segmented" role="group" aria-label="Group problems by">${[['category','Category'],['difficulty','Difficulty'],...(session.user?.admin?[['source','Source']]:[])].map(([key,label])=>`<button data-group-by="${key}" aria-pressed="${progressFilters.groupBy===key}">${label}</button>`).join('')}</div></div></section>
     <section class="filters progress-filters" aria-label="Filter progress"><label for="progress-search">Search<input id="progress-search" type="search" placeholder="Title, keyword…" value="${esc(progressFilters.search)}"></label>
     <label for="progress-category">Category<select id="progress-category">${option('','All categories',progressFilters.category)}${Object.keys(categories).map(c=>option(c,c,progressFilters.category)).join('')}</select></label>
     <label for="progress-difficulty">Difficulty<select id="progress-difficulty">${option('','All levels',progressFilters.difficulty)}${[1,2,3,4,5].map(n=>option(String(n),`Level ${n}`,progressFilters.difficulty)).join('')}</select></label>
-    <label for="progress-source">Source<select id="progress-source">${option('','All sources',progressFilters.source)}${[...new Set(progressItems.map(p=>p.source))].sort(sourceOrder).map(s=>option(s,s,progressFilters.source)).join('')}</select></label></section>
+    ${session.user?.admin?`<label for="progress-source">Source<select id="progress-source">${option('','All sources',progressFilters.source)}${[...new Set(progressItems.map(p=>p.source))].sort(sourceOrder).map(s=>option(s,s,progressFilters.source)).join('')}</select></label>`:''}</section>
     <div class="progress-legend"><span>Difficulty</span>${[1,2,3,4,5].map(n=>`<span class="level-key level-${n}">${n}</span>`).join('')}<span>✓ Solved · ○ Unsolved</span><button class="text-link" data-action="reset-progress">Clear filters</button></div>
     <div id="progress-grid" aria-live="polite"></div>`,'progress');
     drawProgress();
@@ -145,7 +159,7 @@ function drawProgress() {
         const limit=progressExpanded[g.key]||24;
         const heading=progressFilters.groupBy==='difficulty'?`Level ${g.key}`:g.key;
         return `<section class="progress-group"><div class="progress-group-heading"><h2>${esc(heading)}</h2><span>${g.solved} / ${g.total} solved</span><progress max="${g.total}" value="${g.solved}" aria-label="${esc(heading)}: ${g.solved} of ${g.total} solved"></progress></div>
-        <div class="problem-grid">${g.items.slice(0,limit).map(p=>`<a class="problem-tile level-${p.difficulty} ${p.progress==='solved'?'is-solved':''}" href="#/probleme/${p.id}?from=progress" title="${esc(titleOf(p))} — ${esc(p.category)} · ${esc(p.source)}" aria-label="${esc(titleOf(p))} — Level ${p.difficulty} — ${progress[p.progress]}"><div class="tile-top"><span>Level ${p.difficulty}</span><span class="tile-status">${p.progress==='solved'?'✓ Solved':'○ '+progress[p.progress]}</span></div><strong dir="auto">${esc(titleOf(p))}</strong><small>${esc(p.category)} · ${esc(p.source)}</small></a>`).join('')}</div>${g.items.length>limit?`<button class="button secondary small more-problems" data-more-group="${esc(g.key)}">Show ${Math.min(24,g.items.length-limit)} more (${g.items.length-limit} remaining)</button>`:''}</section>`;
+        <div class="problem-grid">${g.items.slice(0,limit).map(p=>`<a class="problem-tile level-${p.difficulty} ${p.progress==='solved'?'is-solved':''}" href="#/probleme/${p.id}?from=progress" title="${esc(titleOf(p))} — ${esc(p.category)}${session.user?.admin?' · '+esc(p.source):''}" aria-label="${esc(titleOf(p))} — Level ${p.difficulty} — ${progress[p.progress]}"><div class="tile-top"><span>Level ${p.difficulty}</span><span class="tile-status">${p.progress==='solved'?'✓ Solved':'○ '+progress[p.progress]}</span></div><strong dir="auto">${esc(titleOf(p))}</strong><small>${esc(p.category)}${session.user?.admin?' · '+esc(p.source):''}</small></a>`).join('')}</div>${g.items.length>limit?`<button class="button secondary small more-problems" data-more-group="${esc(g.key)}">Show ${Math.min(24,g.items.length-limit)} more (${g.items.length-limit} remaining)</button>`:''}</section>`;
     }).join(''):empty(!progressItems.length?'No published problems':!view.total?'No matching problems':progressFilters.mode==='solved'?'No solved problems yet':`No ${progressModes[progressFilters.mode].toLowerCase()} problems`,!progressItems.length?'Published problems will appear here.':'',progressItems.length&&progressFilters.mode==='solved'?'<button class="button secondary" data-progress-mode="unsolved">Browse unsolved problems</button>':'');
 }
 function auth(kind:string,params:URLSearchParams) {
@@ -173,13 +187,16 @@ async function reader(id:string,origin='') {
     readerOrigin=origin;
     const seq=routeSequence;problem=await api('problems/'+id);if(seq!==routeSequence)return;
     if(!problem.versions[language])language=Object.keys(problem.versions)[0];
+    // Opening a problem marks it Seen, unless the reader already set a status.
+    if(problem.progress==='unseen'){problem.progress='seen';void api('problems/'+problem.id+'/progress',{progress:'seen'}).catch(()=>{});}
     showReader();
 }
 function showReader() {
     const p=problem,v=p.versions[language];let content;
     try{content=math(v,p.assets);}catch(error:any){content=`<p class="notice error">The statement needs a rendering correction: ${esc(error.message)}</p><pre>${esc(v.latex)}</pre>`;}
-    shell(`<div class="reader-heading"><a class="text-link" href="${readerOrigin==='progress'?'#/progress':'#/problems'}">← ${readerOrigin==='progress'?'Progress':'Problems'}</a><span class="badge">${esc(categories[p.category])}</span><span class="muted">${esc(p.source)} · Level ${p.difficulty}</span></div>
-    <article class="reading-card"><div class="reader-top"><p class="eyebrow">FLEXAGON</p>${Object.keys(p.versions).length>1?`<label class="reader-language" for="reader-language">Language<select id="reader-language">${Object.entries(p.versions).map(([key,v])=>option(key,languageName(key,v),language)).join('')}</select></label>`:`<span class="small muted">${esc(languageName(language,v))}</span>`}</div><h1 dir="auto">${esc(v.title)}</h1><div class="math-content" dir="auto">${content}</div><div class="tags">${p.keywords.map((k:string)=>`<span>${esc(k)}</span>`).join('')}</div><div class="reader-foot"><span>Submitted by <strong>${esc(p.author)}</strong></span>${p.editable?`<a href="#/editer/${p.id}">Edit →</a>`:''}</div></article>
+    const backList=!readerOrigin&&listReturn?`<button class="text-link" data-action="back-to-list">← Back to problem list</button>`:`<a class="text-link" href="${readerOrigin==='progress'?'#/progress':'#/problems'}">← ${readerOrigin==='progress'?'Progress':'Problems'}</a>`;
+    shell(`<div class="reader-heading">${backList}<span class="badge">${esc(categories[p.category])}</span><span class="muted">${session.user?.admin?esc(p.source)+' · ':''}Level ${p.difficulty}</span></div>
+    <article class="reading-card"><div class="reader-top"><p class="eyebrow">FLEXAGON</p><div class="reader-top-controls">${Object.keys(p.versions).length>1?`<label class="reader-language" for="reader-language">Language<select id="reader-language">${Object.entries(p.versions).map(([key,v])=>option(key,languageName(key,v),language)).join('')}</select></label>`:`<span class="small muted">${esc(languageName(language,v))}</span>`}${session.user?.admin?`<div class="reader-triage"><span class="reader-triage-label">Triage</span><div class="segmented triage-buttons" role="group" aria-label="Triage">${Object.entries(triages).map(([key,label])=>`<button data-triage="${key}" data-triage-id="${p.id}" aria-pressed="${(p.triage||'unseen')===key}">${label}</button>`).join('')}</div></div>`:''}</div></div><h1 dir="auto">${esc(v.title)}</h1><div class="math-content" dir="auto">${content}</div><div class="tags">${p.keywords.map((k:string)=>`<span>${esc(k)}</span>`).join('')}</div><div class="reader-foot"><span>Submitted by <strong>${esc(p.author)}</strong></span>${p.editable?`<a href="#/editer/${p.id}">Edit →</a>`:''}</div></article>
     <section class="progress-card"><div><h2>Progress</h2></div><div class="segmented progress-buttons">${Object.entries(progress).map(([key,label])=>`<button data-progress="${key}" aria-pressed="${p.progress===key}">${label}</button>`).join('')}</div></section>`,'collection');
 }
 async function editor(id:string) {
@@ -190,18 +207,19 @@ async function editor(id:string) {
 function collectEditor() {
     if(!$('#problem-title'))return;
     const v=problem.versions[editorLanguage];v.title=value('problem-title');v.latex=value('latex');v.language=value('language-name').trim();if(session.user.admin)v.approved=checked('approved');
-    problem.category=value('edit-category');problem.difficulty=Number(value('edit-difficulty'));problem.source=value('edit-source');problem.keywords=value('keywords').split(',').map((s:string)=>s.trim()).filter(Boolean);if(session.user.admin)problem.reviewNote=value('review-note');
+    problem.category=value('edit-category');problem.difficulty=Number(value('edit-difficulty'));if(session.user.admin)problem.source=value('edit-source');problem.keywords=value('keywords').split(',').map((s:string)=>s.trim()).filter(Boolean);if(session.user.admin)problem.reviewNote=value('review-note');
 }
 function showEditor() {
     if(!problem.versions[editorLanguage])editorLanguage=Object.keys(problem.versions)[0];
     const p=problem,v=p.versions[editorLanguage];
-    shell(`${intro(titleOf(p)==='Untitled'?'New problem':esc(titleOf(p)),`<span class="status ${p.state}">${statuses[p.state]}</span>`)}
+    const backList=listReturn?`<button class="text-link" data-action="back-to-list">← Back to problem list</button>`:`<a class="text-link" href="${session.user.admin?'#/administration':'#/mes-propositions'}">← Back to problem list</a>`;
+    shell(`<div class="reader-heading">${backList}</div>${intro(titleOf(p)==='Untitled'?'New problem':esc(titleOf(p)),`<span class="status ${p.state}">${statuses[p.state]}</span>`)}
     ${p.hasPublished?`<div class="notice soft">A version is published. Changes stay private until you publish again. <a href="#/probleme/${p.id}">View published version →</a></div>`:''}
     ${p.reviewNote&&!session.user.admin?`<div class="notice soft"><strong>Administrator’s note</strong><p>${esc(p.reviewNote)}</p></div>`:''}
-    ${notice()}<div class="editor-meta"><label for="edit-category">Category<select id="edit-category">${Object.entries(categories).map(([key,label])=>option(key,label,p.category)).join('')}</select></label><label for="edit-difficulty">Difficulty<select id="edit-difficulty">${[1,2,3,4,5].map(n=>option(String(n),`${n} — ${['Introductory','Easy','Intermediate','Hard','Very hard'][n-1]}`,String(p.difficulty))).join('')}</select></label><label for="edit-source">Source<input id="edit-source" list="sources" value="${esc(p.source)}" maxlength="160"><datalist id="sources">${[...session.sources,'Community'].map((s:string)=>`<option value="${esc(s)}">`).join('')}</datalist></label><label for="keywords">Keywords<input id="keywords" value="${esc(p.keywords.join(', '))}" placeholder="probability, integers…"><span class="field-help">Separate with commas.</span></label></div>
+    ${notice()}<div class="editor-meta"><label for="edit-category">Category<select id="edit-category">${Object.entries(categories).map(([key,label])=>option(key,label,p.category)).join('')}</select></label><label for="edit-difficulty">Difficulty<select id="edit-difficulty">${[1,2,3,4,5].map(n=>option(String(n),`${n} — ${['Introductory','Easy','Intermediate','Hard','Very hard'][n-1]}`,String(p.difficulty))).join('')}</select></label>${session.user.admin?`<label for="edit-source">Source<input id="edit-source" list="sources" value="${esc(p.source)}" maxlength="160"><datalist id="sources">${[...session.sources,'Community'].map((s:string)=>`<option value="${esc(s)}">`).join('')}</datalist></label>`:''}<label for="keywords">Keywords<input id="keywords" value="${esc(p.keywords.join(', '))}" placeholder="probability, integers…"><span class="field-help">Separate with commas.</span></label></div>
     ${referenceLinks(p,true)}
     ${p.legacy?`<details class="source-details"><summary>Original source details</summary><p>${p.legacy.sources.map((s:any)=>`${esc(s.title)} · Problem ${esc(s.number)} · PDF page ${s.page}`).join('<br>')}</p><p class="muted">${esc(p.legacy.note)}</p>${p.legacy.reviewUrl?`<a class="text-link" href="${esc(p.legacy.reviewUrl)}" target="_blank" rel="noopener">Open original review & reference PDF ↗</a>`:''}</details>`:''}
-    <section class="editor-panel"><div class="editor-toolbar"><div class="segmented language-tabs" role="group" aria-label="Edit language version">${Object.entries(p.versions).map(([key,version])=>`<button data-editor-lang="${key}" aria-pressed="${key===editorLanguage}">${esc(languageName(key,version))} ${p.versions[key].approved?'✓':''}</button>`).join('')}</div><label class="import-button" for="tex-file">Import .tex ↗<input type="file" id="tex-file" accept=".tex,text/plain"></label></div>
+    <section class="editor-panel"><div class="editor-toolbar"><div class="segmented language-tabs" role="group" aria-label="Edit language version">${Object.entries(p.versions).map(([key,version])=>`<button data-editor-lang="${key}" aria-pressed="${key===editorLanguage}">${esc(languageName(key,version))} ${p.versions[key].approved?'✓':''}</button>`).join('')}</div>${session.user.admin?`<div class="editor-triage"><span class="reader-triage-label">Triage</span><div class="segmented triage-buttons" role="group" aria-label="Triage">${Object.entries(triages).map(([key,label])=>`<button data-triage="${key}" data-triage-id="${p.id}" aria-pressed="${(p.triage||'unseen')===key}">${label}</button>`).join('')}</div></div>`:''}<label class="import-button" for="tex-file">Import .tex ↗<input type="file" id="tex-file" accept=".tex,text/plain"></label></div>
     <div class="language-management"><details id="add-language"><summary>＋ Add a language</summary><form id="add-language-form"><label for="new-language">Language<input id="new-language" list="language-names" maxlength="60" required placeholder="Choose or type a language"></label><button class="button small" type="submit">Add language</button></form></details>${Object.keys(p.versions).length>1?'<button class="text-link danger" data-action="remove-language">Remove this version</button>':''}</div>
     <datalist id="language-names">${Object.values(knownLanguages).sort().map(name=>`<option value="${esc(name)}">`).join('')}</datalist>
     <div class="editor-title"><label for="language-name">Language name<input id="language-name" list="language-names" value="${esc(languageName(editorLanguage,v))}" maxlength="60" required dir="auto"></label><label for="problem-title">Title<input id="problem-title" value="${esc(v.title)}" maxlength="300" placeholder="Problem title" dir="auto"></label></div>
@@ -292,11 +310,13 @@ const routeAliases:Record<string,string>={confirm:'confirmer',reset:'reinitialis
 async function route(){
     const current=location.hash||'#/';if(dirty&&current!==lastRoute&&!confirm('Leave without saving your changes?')){history.replaceState(null,'',lastRoute);return;}
     disposeReference?.();disposeReference=undefined;lastRoute=current;dirty=false;routeSequence++;const [path,query]=current.replace(/^#/,'').split('?');const parts=path.split('/').filter(Boolean);const page=routeAliases[parts[0]]||parts[0]||'';document.title='Flexagon';window.scrollTo(0,0);
+    const restoring=backRestore&&!!listReturn&&listReturn.hash.replace(/^#/,'').split('?')[0]===path;backRestore=false;
+    if(restoring)filters={...listReturn!.filters};
     try{if(!session)session=await api('session');
         if(['connexion','inscription','mot-de-passe','renvoyer','reinitialiser','confirmer'].includes(page))auth(page,new URLSearchParams(query));
-        else if(page==='mes-propositions'){filters.status='';filters.progress='';await collection('mine');}
-        else if(page==='administration'){filters.status='';filters.progress='';await collection('review');}
-        else if(page==='reference')await referencePage(parts[1],new URLSearchParams(query));else if(page==='about')about();else if(page==='progress')await progressPage();else if(page==='problems'){filters.status='';await collection();}
+        else if(page==='mes-propositions'){if(!restoring){filters.status='';filters.progress='';filters.triage='';}await collection('mine',restoring);}
+        else if(page==='administration'){if(!restoring){filters.status='';filters.progress='';}await collection('review',restoring);}
+        else if(page==='reference')await referencePage(parts[1],new URLSearchParams(query));else if(page==='about')about();else if(page==='progress')await progressPage();else if(page==='problems'){if(!restoring){filters.status='';filters.triage='';}await collection('published',restoring);}
         else if(page==='probleme')await reader(parts[1],new URLSearchParams(query).get('from')||'');else if(page==='editer')await editor(parts[1]);else if(page==='profil')profile();else if(page==='aide')help();else if(page==='confidentialite')privacy();else if(page==='courrier')await mailbox();else landing();
     }catch(error:any){shell(empty('Page unavailable',esc(error.message),'<a class="button" href="#/problems">Back to problems</a>'));}
 }
@@ -315,7 +335,7 @@ root.addEventListener('change',async(e)=>{
     const target=e.target as HTMLInputElement;
     if(target.id==='reader-language'){language=target.value;showReader();return;}
     if(['progress-category','progress-difficulty','progress-source'].includes(target.id)){(progressFilters as any)[target.id.slice(9)]=target.value;progressExpanded=Object.create(null);drawProgress();return;}
-    if(['category','difficulty','source','progress','status','sort'].includes(target.id)){(filters as any)[target.id]=target.value;drawList();}
+    if(['category','difficulty','source','progress','status','triage','sort'].includes(target.id)){(filters as any)[target.id]=target.value;drawList();}
     try{
         if(target.id==='tex-file'&&target.files?.[0]){if(target.files[0].size>60000)throw Error('The .tex file must be under 60 KB.');let text=await target.files[0].text();const body=/\\begin\{document\}([\s\S]*?)\\end\{document\}/.exec(text);if(body)text=body[1].trim();$('#latex').value=text;problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();}
         if((target.id==='figure-file'||target.id==='avatar-file')&&target.files?.[0]){
@@ -329,7 +349,7 @@ root.addEventListener('change',async(e)=>{
     }catch(error:any){message(error.message,true);}finally{target.disabled=false;}
 });
 root.addEventListener('click',async(e)=>{
-    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-figure],[data-detach],[data-progress],[data-source],[data-progress-mode],[data-group-by],[data-more-group]');if(!b)return;
+    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-figure],[data-detach],[data-progress],[data-triage],[data-source],[data-progress-mode],[data-group-by],[data-more-group]');if(!b)return;
     try{
         if(b.dataset.progressMode){progressFilters.mode=b.dataset.progressMode as any;progressExpanded=Object.create(null);drawProgress();return;}
         if(b.dataset.groupBy){progressFilters.groupBy=b.dataset.groupBy as any;progressExpanded=Object.create(null);drawProgress();return;}
@@ -354,9 +374,11 @@ root.addEventListener('click',async(e)=>{
             delete problem.assets[name];problem.revision=removed.revision;showEditor();toast('Figure removed.');return;
         }
         if(b.dataset.progress){await api('problems/'+problem.id+'/progress',{progress:b.dataset.progress});problem.progress=b.dataset.progress;showReader();return;}
+        if(b.dataset.triage){const id=b.dataset.triageId!;await api('problems/'+id+'/triage',{triage:b.dataset.triage});if(problem&&String(problem.id)===id)problem.triage=b.dataset.triage;const item=listing?.items?.find((p:any)=>String(p.id)===id);if(item)item.triage=b.dataset.triage;if($('#problem-list'))drawList(false);else document.querySelectorAll<HTMLElement>(`[data-triage][data-triage-id="${id}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.triage===b.dataset.triage)));return;}
+        if(b.dataset.action==='back-to-list'){backRestore=!!listReturn;routeTo(listReturn?listReturn.hash.replace(/^#/,''):(session.user?.admin?'/administration':'/mes-propositions'));return;}
         if(b.dataset.source){filters.source=b.dataset.source;$('#source').value=b.dataset.source;drawList();return;}
         if(b.dataset.action==='new'){if(!session.user){routeTo('/connexion');return;}b.setAttribute('disabled','');const created=await api('problems',{});routeTo('/editer/'+created.id);}
-        if(b.dataset.action==='reset-filters'){filters={search:'',category:'',difficulty:'',source:'',progress:'',status:'',sort:'newest'};for(const [id,v] of Object.entries(filters))if($('#'+id))$('#'+id).value=v;drawList();}
+        if(b.dataset.action==='reset-filters'){filters={search:'',category:'',difficulty:'',source:'',progress:'',status:'',triage:'',sort:'newest'};for(const [id,v] of Object.entries(filters))if($('#'+id))$('#'+id).value=v;drawList();}
         if(b.dataset.action==='pick'){const items=filtered();if(!items.length){toast('No problems match these filters.');return;}routeTo('/probleme/'+items[Math.floor(Math.random()*items.length)].id);}
         if(b.dataset.action==='logout'){await api('auth/logout',{});location.hash='#/';location.reload();}
         if(b.dataset.action==='delete-draft'&&confirm('Delete this draft, its figures and revision history?')){await api('problems/'+problem.id,{},'DELETE');dirty=false;routeTo('/mes-propositions');toast('Draft deleted.');}
@@ -364,6 +386,10 @@ root.addEventListener('click',async(e)=>{
         if(b.dataset.action==='history'){const entries=await api('problems/'+problem.id+'/history');$('#history').innerHTML=`<section class="panel"><h2>History</h2>${entries.length?entries.map((entry:any)=>`<details class="history-entry"><summary>${esc(actions[entry.action]||entry.action)} · ${date(entry.date)} · ${esc(entry.by)}</summary><p>Revision ${entry.snapshot.revision} — ${esc(titleOf(entry.snapshot))}</p>${Object.entries(entry.snapshot.versions).map(([lang,v]:any)=>`<h3>${esc(languageName(lang,v))} ${v.approved?'✓':''}</h3><pre>${esc(v.title)}\n\n${esc(v.latex)}</pre>`).join('')}</details>`).join(''):'<p>No saved revisions yet.</p>'}</section>`;}
     }catch(error:any){message(error.message,true);}finally{b.removeAttribute('disabled');}
 });
+// Capture the list position the moment a problem row is opened (plain-anchor navigation).
+root.addEventListener('click',(e)=>{
+    if((e.target as HTMLElement).closest('a.problem-row')&&$('#problem-list'))listReturn={hash:location.hash,filters:{...filters},page:listPage,scroll:window.scrollY};
+},true);
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('hashchange',route);
 route();

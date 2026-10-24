@@ -23,6 +23,8 @@ function lpdj_present($data, $editor = false, $author = null) {
     unset($version);
     foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name] = lpdj_asset_present($asset);
     $data['progress'] = get_user_meta(get_current_user_id(), '_lpdj_progress_' . $data['id'], true) ?: 'unseen';
+    // Each administrator keeps a private triage (unseen/nice/later) of the problems under review.
+    if (lpdj_admin()) $data['triage'] = get_user_meta(get_current_user_id(), '_lpdj_triage_' . $data['id'], true) ?: 'unseen';
     $data['editable'] = $author === null ? lpdj_can_edit(lpdj_problem_post($data['id'])) : (lpdj_admin() || $author === get_current_user_id());
     if (!$editor) unset($data['reviewNote']);
     return $data;
@@ -222,9 +224,15 @@ function lpdj_problem_delete($r) {
 }
 function lpdj_progress_save($r) {
     if (!get_post_meta(absint($r['id']), '_lpdj_published', true)) return lpdj_error('Problem not found.', 404);
-    if (!in_array($r['progress'], ['unseen','bookmarked','attempted','solved'], true)) return lpdj_error('Unknown progress value.');
+    if (!in_array($r['progress'], ['unseen','seen','bookmarked','attempted','solved'], true)) return lpdj_error('Unknown progress value.');
     update_user_meta(get_current_user_id(), '_lpdj_progress_' . absint($r['id']), $r['progress']);
     return ['progress' => $r['progress']];
+}
+function lpdj_triage_save($r) {
+    if (!lpdj_problem_post($r['id'])) return lpdj_error('Problem not found.', 404);
+    if (!in_array($r['triage'], ['unseen','nice','later'], true)) return lpdj_error('Unknown category.');
+    update_user_meta(get_current_user_id(), '_lpdj_triage_' . absint($r['id']), $r['triage']);
+    return ['triage' => $r['triage']];
 }
 add_action('lpdj_notify_published', function ($id) {
     $pub = get_post_meta($id, '_lpdj_published', true); if (!$pub || get_post_meta($id, '_lpdj_notified', true)) return;

@@ -1,5 +1,5 @@
 export type ProgressProblem = {id:number;category:string;difficulty:number;source:string;progress:string;keywords:string[];versions:Record<string,{title:string}>};
-export type ProgressFilters = {groupBy:'category'|'difficulty'|'source';mode:'all'|'unseen'|'bookmarked'|'attempted'|'solved'|'unsolved';search:string;category:string;difficulty:string;source:string};
+export type ProgressFilters = {groupBy:'category'|'difficulty'|'source';mode:'all'|'unseen'|'seen'|'bookmarked'|'attempted'|'solved'|'unsolved';search:string;category:string;difficulty:string;source:string};
 export const problemTitle = (p:{versions:Record<string,{title:string}>}) => p.versions.en?.title || p.versions.fr?.title || Object.values(p.versions).find(v=>v.title)?.title || 'Untitled';
 export function progressGroups(items:ProgressProblem[], filters:ProgressFilters, compareSources:(a:string,b:string)=>number) {
     const search=filters.search.trim().toLocaleLowerCase();
