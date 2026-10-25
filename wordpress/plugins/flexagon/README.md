@@ -44,7 +44,10 @@ Deactivating the plugin preserves content. There is no destructive uninstall hoo
 
 Administrators have a Members roster (`GET /users`, the theme's `#/membres` page) listing
 every account's email with the number of problems it submitted for review and the number
-published. Counts are cached per catalogue version; the account list is read fresh.
+published. Counts are cached per catalogue version; the account list is read fresh. From
+it an administrator can delete (`DELETE /users/{id}`, with confirmation) a non-admin
+account that has no published problems; its drafts and submissions go with it, and
+publications are never affected.
 
 Original source PDFs are served only to administrators by `lpdj_reference`. Configure
 `LPDJ_REFERENCE_DIR` to a private directory outside the web root with `manifest.json`

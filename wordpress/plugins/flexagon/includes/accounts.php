@@ -86,7 +86,7 @@ function lpdj_auth_verify($r) {
     if (!$record || $record['expires'] < time() || !hash_equals($record['hash'], hash('sha256', (string) $r['token']))) return lpdj_error('This link is invalid or expired. Request a new link.');
     update_user_meta($id, '_lpdj_verification', 'verified'); delete_user_meta($id, '_lpdj_verify_token');
     lpdj_admin_alert('user', $id);
-    return ['message' => 'Email confirmed. You can now sign in.'];
+    return ['message' => 'Your email is confirmed. Your account is ready to use — sign in to get started.'];
 }
 function lpdj_auth_resend($r) {
     if (($t = lpdj_throttle('resend', 5)) !== true) return $t;
@@ -208,4 +208,31 @@ function lpdj_users_list() {
     // Most active contributors first, then by name.
     usort($users, fn($a, $b) => ($b['submitted'] <=> $a['submitted']) ?: strcasecmp($a['name'], $b['name']));
     return ['users' => array_values($users), 'total' => count($users)];
+}
+
+// Administrator deletion of an account from the Members roster. Allowed only for a
+// non-administrator account with no published problems (publications must be preserved
+// and reattributed through the member's own account deletion instead). The member's
+// drafts, submissions and their assets/history are removed with the account.
+function lpdj_user_delete($r) {
+    $id = absint($r['id']);
+    $user = get_user_by('id', $id);
+    if (!$user) return lpdj_error('Account not found.', 404);
+    if ($id === get_current_user_id()) return lpdj_error('You cannot delete your own account from here.');
+    if (user_can($user, 'manage_options')) return lpdj_error('Administrator accounts cannot be deleted here.');
+    $stats = lpdj_author_stats();
+    if (($stats['published'][$id] ?? 0) > 0) return lpdj_error('This account has published problems. Publications must be kept, so it cannot be deleted here.');
+    foreach (get_posts(['post_type' => 'lpdj_problem', 'author' => $id, 'posts_per_page' => -1, 'post_status' => 'any']) as $post) {
+        if (get_post_meta($post->ID, '_lpdj_published', true)) continue; // never touch a published problem
+        foreach (get_posts(['post_type' => ['lpdj_asset','lpdj_history'], 'post_status' => 'private', 'post_parent' => $post->ID, 'posts_per_page' => -1]) as $child) wp_delete_post($child->ID, true);
+        wp_delete_post($post->ID, true);
+    }
+    foreach (get_posts(['post_type' => ['lpdj_asset','lpdj_history'], 'author' => $id, 'posts_per_page' => -1, 'post_status' => 'any']) as $orphan) {
+        if ($orphan->post_parent && get_post_meta($orphan->post_parent, '_lpdj_published', true)) wp_update_post(['ID' => $orphan->ID, 'post_author' => 0]);
+        else wp_delete_post($orphan->ID, true);
+    }
+    require_once ABSPATH . 'wp-admin/includes/user.php';
+    wp_delete_user($id, 0);
+    lpdj_catalogue_changed();
+    return ['ok' => true, 'id' => $id];
 }

@@ -220,5 +220,19 @@ try {
         row=(await admin.get('users')).users.find(u=>u.email==='roster@example.test');assert.equal(row.submitted,1);assert.equal(row.published,1);
         const adminRow=(await admin.get('users')).users.find(u=>u.admin===true);assert.ok(adminRow);assert.ok('email' in adminRow);
     });
+    await check('Admin deletes only non-admin accounts with no publications; members cannot delete at all',async()=>{
+        const roster=(await admin.get('users')).users.find(u=>u.email==='roster@example.test');   // has a published problem
+        assert.equal((await admin.request('users/'+roster.id,{},'DELETE')).status,400);
+        // Created directly to avoid the public registration throttle this late in the run.
+        const [vid,vp]=(await php(`$id=wp_insert_user(['user_login'=>'victim-del','user_email'=>'victim@example.test','user_pass'=>wp_generate_password(32),'display_name'=>'Victim','role'=>'lpdj_member']);update_user_meta($id,'_lpdj_verification','verified');$p=wp_insert_post(['post_type'=>'lpdj_problem','post_status'=>'private','post_author'=>$id,'post_title'=>'Victim draft']);echo $id.'|'.$p;`)).split('|').map(Number);
+        assert.ok((await admin.get('users')).users.some(u=>u.email==='victim@example.test'));
+        assert.equal((await author.request('users/'+vid,{},'DELETE')).status,403);assert.equal((await anon.request('users/'+vid,{},'DELETE')).status,403);
+        const adminId=(await admin.get('users')).users.find(u=>u.admin).id;
+        assert.equal((await admin.request('users/'+adminId,{},'DELETE')).status,400);   // admin / self protected
+        assert.equal((await admin.request('users/'+vid,{},'DELETE')).status,200);
+        assert.ok(!(await admin.get('users')).users.some(u=>u.email==='victim@example.test'));
+        assert.equal(await php(`echo get_post(${vp})?'exists':'gone';`),'gone');
+        assert.equal(await php(`echo get_user_by('id',${vid})?'exists':'gone';`),'gone');
+    });
     console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
 } finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});await rm(figureDir,{recursive:true,force:true});}

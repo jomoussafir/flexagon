@@ -66,3 +66,8 @@
 .members-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .members-email{color:var(--muted);overflow-wrap:anywhere;white-space:normal}
 .badge.warn{background:#f3e6d6;color:#8a5a1a}
+
+/* Members roster actions + prominent account confirmation message */
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.members-actions{text-align:right;white-space:nowrap}
+.notice.auth-confirm{font-size:17px;line-height:1.55;padding:20px 22px;font-weight:500}

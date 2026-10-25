@@ -48,7 +48,8 @@ To add a new problem:
 A normal member sees **Submit for review** instead of publication controls.
 The **Admin review** page shows submitted problems and their language approval status.
 The **Members** page (admin account menu) lists every account's email with how many
-problems it submitted and how many are published.
+problems it submitted and how many are published. Accounts with no published problems
+can be deleted from there, after a confirmation.
 
 ## Figures from the reference books
 

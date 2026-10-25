@@ -177,9 +177,12 @@ function auth(kind:string,params:URLSearchParams) {
         e.preventDefault();const form=e.currentTarget as HTMLFormElement;const btn=form.querySelector('button')!;btn.disabled=true;
         try{
             const result=await api('auth/'+({inscription:'register',connexion:'login','mot-de-passe':'forgot',renvoyer:'resend',reinitialiser:'reset',confirmer:'verify'} as any)[kind],{pseudo:value('pseudo'),email:value('email'),password:value('password'),remember:checked('remember'),accept:checked('accept'),notifications:checked('notifications'),...Object.fromEntries(params)});
-            if(login){session=result;const next=params.get('next')||'/problems';location.hash='#'+(next.startsWith('/')&&!next.startsWith('//')?next:'/problems');location.reload();}else{message(result.message);if(verify||reset)form.hidden=true;else form.reset();}
+            if(login){session=result;const next=params.get('next')||'/problems';location.hash='#'+(next.startsWith('/')&&!next.startsWith('//')?next:'/problems');location.reload();}
+            else{message(result.message);form.hidden=true;$('#form-message')?.classList.add('auth-confirm');}
         }catch(error:any){message(error.message,true);}finally{btn.disabled=false;}
     };
+    // Clicking the emailed confirmation link lands here; verify at once and show the result.
+    if(verify){$('#form-message').textContent='Confirming your email…';($('#auth-form') as HTMLFormElement).requestSubmit();}
 }
 function math(version:any,assets:any) { return render(version.latex,Object.fromEntries(Object.entries(assets||{}).map(([name,a]:any)=>[name,a.url]))); }
 async function reader(id:string,origin='') {
@@ -307,11 +310,13 @@ function privacy(){shell(`${intro('Privacy & contributions')}<article class="pan
 async function members(){
     if(!session.user?.admin){routeTo('/');return;}
     const seq=routeSequence;const data=await api('users');if(seq!==routeSequence)return;
-    const row=(u:any)=>`<tr><td>${esc(u.name)}${u.admin?' <span class="badge">Admin</span>':''}${u.confirmed?'':' <span class="badge warn">Unconfirmed</span>'}</td><td class="members-email">${esc(u.email)}</td><td class="num">${u.submitted}</td><td class="num">${u.published}</td></tr>`;
+    // An account can be deleted only when it is not an administrator, not yourself, and has no publications.
+    const canDelete=(u:any)=>!u.admin&&u.published===0&&u.email!==session.user.email;
+    const row=(u:any)=>`<tr><td>${esc(u.name)}${u.admin?' <span class="badge">Admin</span>':''}${u.confirmed?'':' <span class="badge warn">Unconfirmed</span>'}</td><td class="members-email">${esc(u.email)}</td><td class="num">${u.submitted}</td><td class="num">${u.published}</td><td class="members-actions">${canDelete(u)?`<button class="text-link danger" data-delete-user="${u.id}" data-user-email="${esc(u.email)}">Delete</button>`:''}</td></tr>`;
     shell(`${intro('Members',`<span class="muted">${data.total} account${data.total===1?'':'s'}</span>`)}
-    <p class="field-help">Submitted counts problems put forward for review; Published counts those live after review.</p>
-    <div class="table-wrap"><table class="members-table"><thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col" class="num">Submitted</th><th scope="col" class="num">Published</th></tr></thead>
-    <tbody>${data.users.map(row).join('')||'<tr><td colspan="4" class="muted">No accounts yet.</td></tr>'}</tbody></table></div>`,'members');
+    <p class="field-help">Submitted counts problems put forward for review; Published counts those live after review. Accounts with no published problems can be deleted.</p>
+    <div class="table-wrap"><table class="members-table"><thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col" class="num">Submitted</th><th scope="col" class="num">Published</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+    <tbody>${data.users.map(row).join('')||'<tr><td colspan="5" class="muted">No accounts yet.</td></tr>'}</tbody></table></div>`,'members');
 }
 async function mailbox(){if(!session.user?.admin||!session.local){routeTo('/');return;}const mail=await api('mailbox');shell(`${intro('Test inbox')}<div class="mailbox">${mail.length?mail.map((m:any)=>`<article class="panel"><p class="small muted">${esc(String(m.to))} · ${date(m.date)}</p><h2>${esc(m.subject)}</h2><pre>${esc(m.message).replace(/https?:\/\/[^\s<&]+/g,(url:string)=>`<a href="${url}" target="_blank" rel="noopener">${url}</a>`)}</pre></article>`).join(''):empty('No emails yet','Confirmation emails for test accounts appear here.')}</div>`);}
 // English addresses used in emails and the iPhone client; the historic French names remain valid.
@@ -358,8 +363,9 @@ root.addEventListener('change',async(e)=>{
     }catch(error:any){message(error.message,true);}finally{target.disabled=false;}
 });
 root.addEventListener('click',async(e)=>{
-    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-figure],[data-detach],[data-progress],[data-triage],[data-source],[data-progress-mode],[data-group-by],[data-more-group]');if(!b)return;
+    const b=(e.target as HTMLElement).closest<HTMLElement>('[data-action],[data-save],[data-reader-lang],[data-editor-lang],[data-insert],[data-figure],[data-detach],[data-progress],[data-triage],[data-source],[data-progress-mode],[data-group-by],[data-more-group],[data-delete-user]');if(!b)return;
     try{
+        if(b.dataset.deleteUser){const email=b.dataset.userEmail||'this account';if(!confirm(`Delete ${email}? The account and its drafts and submissions will be removed. This cannot be undone.`))return;b.setAttribute('disabled','');await api('users/'+b.dataset.deleteUser,{},'DELETE');toast('Account deleted.');await members();return;}
         if(b.dataset.progressMode){progressFilters.mode=b.dataset.progressMode as any;progressExpanded=Object.create(null);drawProgress();return;}
         if(b.dataset.groupBy){progressFilters.groupBy=b.dataset.groupBy as any;progressExpanded=Object.create(null);drawProgress();return;}
         if(b.dataset.moreGroup){progressExpanded[b.dataset.moreGroup]=(progressExpanded[b.dataset.moreGroup]||24)+24;drawProgress();return;}

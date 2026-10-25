@@ -11,6 +11,7 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 | `POST /auth/resend`, `/auth/forgot`, `/auth/reset` | Verification resend and password recovery |
 | `GET /problems?scope=published\|mine\|review` | Overview records; review is administrator-only |
 | `GET /users` | Admin-only roster: each account's email, confirmed/admin flags, and submitted/published problem counts |
+| `DELETE /users/{id}` | Admin-only: delete a non-admin account that has no published problems; its drafts and submissions are removed |
 | `POST /problems` | Create an empty private draft |
 | `GET /problems/{id}` | Published snapshot only |
 | `GET /problems/{id}?context=edit` | Author/admin draft with current revision |
