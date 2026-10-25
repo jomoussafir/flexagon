@@ -102,7 +102,7 @@ function lpdj_problem_create() {
 }
 function lpdj_validate_problem($r, $old, $can_approve = false) {
     $category = (string) $r['category']; $difficulty = filter_var($r['difficulty'], FILTER_VALIDATE_INT);
-    if (!in_array($category, ['Algebra','Geometry','Number Theory','Combinatorics','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');
+    if (!in_array($category, ['Algebra','Analysis','Geometry','Number Theory','Combinatorics','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');
     $source = sanitize_text_field((string) $r['source']);
     if (mb_strlen($source) > 160) return lpdj_error('The source is too long.');
     $keywords = array_values(array_unique(array_filter(array_map('sanitize_text_field', (array) $r['keywords']))));

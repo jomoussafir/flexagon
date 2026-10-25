@@ -6,7 +6,7 @@ declare global { interface Window { LPDJ: any } }
 const cfg = window.LPDJ;
 let session = cfg.session;
 const root = document.querySelector('#app')!;
-const categories: Record<string,string> = {Algebra:'Algebra',Geometry:'Geometry','Number Theory':'Number Theory',Combinatorics:'Combinatorics',Logic:'Logic'};
+const categories: Record<string,string> = {Algebra:'Algebra',Analysis:'Analysis',Geometry:'Geometry','Number Theory':'Number Theory',Combinatorics:'Combinatorics',Logic:'Logic'};
 const progress: Record<string,string> = {unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved'};
 const progressModes:Record<ProgressFilters['mode'],string>={all:'All',unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved',unsolved:'Unsolved'};
 const statuses: Record<string,string> = {draft:'Draft',submitted:'Awaiting review',returned:'Changes requested',published:'Published'};
@@ -65,7 +65,7 @@ function shell(content:string, active='', minimal=false) {
     const user=session.user;
     root.innerHTML=`${session.local&&!minimal?`<div class="local-banner"><span class="local-dot"></span>Local preview · Emails stay on this Mac${user?.admin?'<a href="#/courrier">Test inbox ↗</a>':''}</div>`:''}
     <div class="masthead"><header class="header container simple-header"><a class="brand" href="#/" aria-label="Flexagon — Home" title="Flexagon"><img src="${cfg.logo}" alt="" width="52" height="52"><span>Flexagon</span></a>
-    <nav aria-label="Main navigation"><a ${active==='about'?'aria-current="page"':''} href="#/about">About</a><a ${active==='collection'?'aria-current="page"':''} href="#/problems">Problem</a>${user?`<a ${active==='progress'?'aria-current="page"':''} href="#/progress">Progress</a><button class="button small" data-action="new">${user.canPublish?'Publish a problem':'Submit a problem'}</button><details class="account-menu"><summary aria-label="Account menu">${esc(user.pseudo)} <span aria-hidden="true">⌄</span></summary><div><a href="#/mes-propositions">My submissions</a>${user.admin?'<a href="#/administration">Admin review</a><a href="#/membres">Members</a>':''}<a href="#/profil">My profile</a><button data-action="logout">Sign out</button></div></details>`:`<a href="#/connexion">Sign In</a><a class="button small" href="#/inscription">Create Account</a>`}</nav></header></div>
+    <nav aria-label="Main navigation"><a ${active==='about'?'aria-current="page"':''} href="#/about">About</a><a ${active==='collection'?'aria-current="page"':''} href="#/problems">Problems</a>${user?`<a ${active==='progress'?'aria-current="page"':''} href="#/progress">Progress</a><button class="button small" data-action="new">${user.canPublish?'Publish a problem':'Submit a problem'}</button><details class="account-menu"><summary aria-label="Account menu">${esc(user.pseudo)} <span aria-hidden="true">⌄</span></summary><div><a href="#/mes-propositions">My submissions</a>${user.admin?'<a href="#/administration">Admin review</a><a href="#/membres">Members</a>':''}<a href="#/profil">My profile</a><button data-action="logout">Sign out</button></div></details>`:`<a href="#/connexion">Sign In</a><a class="button small" href="#/inscription">Create Account</a>`}</nav></header></div>
     <main id="main" class="container ${minimal?'landing':active==='progress'?'progress-page':''}" tabindex="-1">${content}</main>
     ${minimal?'':`<footer class="footer container"><span>Flexagon</span><a href="#/aide">LaTeX & figures</a><a href="#/confidentialite">Privacy & contributions</a></footer>`}`;
 }
