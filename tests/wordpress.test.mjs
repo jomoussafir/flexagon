@@ -208,5 +208,17 @@ try {
     await check('Disabling new-user alerts preserves confirmation emails and account verification',async()=>{await php("update_option('lpdj_admin_email_alerts',['user'=>0,'submission'=>1]);");const count=(await alerts('user')).length;const muted=await new Client().boot();const token=await register(muted,'muted@example.test','Muted alert');await muted.post('auth/verify',token);await muted.login('muted@example.test');assert.equal((await alerts('user')).length,count);await php("update_option('lpdj_admin_email_alerts',['user'=>1,'submission'=>1]);");await php(`lpdj_admin_alert('user',${token.user});`);assert.equal((await alerts('user')).length,count);});
     await check('Mail transport failures are retried at most three times after the first attempt',async()=>{const output=JSON.parse(await php(`$id=wp_insert_user(['user_login'=>'mail-failure','user_email'=>'failure@example.test','user_pass'=>wp_generate_password(32),'role'=>'lpdj_member']);update_user_meta($id,'_lpdj_verification','verified');$fail=function(){return false;};add_filter('pre_wp_mail',$fail,99);lpdj_admin_alert('user',$id);for($i=0;$i<5;$i++){wp_clear_scheduled_hook('lpdj_retry_admin_alert',['user',$id,0]);do_action('lpdj_retry_admin_alert','user',$id,0);}remove_filter('pre_wp_mail',$fail,99);echo wp_json_encode(get_user_meta($id,'_lpdj_admin_email_alert',true));`));assert.equal(output.attempts,4);assert.equal(output.status,'failed');});
     await check('Legacy import itself does not notify administrators',async()=>{const count=(await alerts('submission')).length;await importLegacy();assert.equal((await alerts('submission')).length,count);});
+    await check('Admin members roster lists emails with submitted and published counts, and is admin-only',async()=>{
+        assert.equal((await author.request('users')).status,403);assert.equal((await anon.request('users')).status,403);
+        const member=await new Client().boot();const tok=await register(member,'roster@example.test','Roster tester');await member.post('auth/verify',tok);await member.login('roster@example.test');
+        let p=await member.post('problems',{});p.versions.fr={title:'Pour revue',latex:'Calculer $1+1$.',approved:true};
+        let before=(await admin.get('users')).users.find(u=>u.email==='roster@example.test');
+        assert.ok(before);assert.equal(before.name,'Roster tester');assert.equal(before.admin,false);assert.equal(before.confirmed,true);assert.equal(before.submitted,0);assert.equal(before.published,0);
+        p=await member.post('problems/'+p.id,{...p,action:'submit'});
+        let row=(await admin.get('users')).users.find(u=>u.email==='roster@example.test');assert.equal(row.submitted,1);assert.equal(row.published,0);
+        p=await admin.get('problems/'+p.id+'?context=edit');p.versions.fr.approved=true;p=await admin.post('problems/'+p.id,{...p,action:'publish'});
+        row=(await admin.get('users')).users.find(u=>u.email==='roster@example.test');assert.equal(row.submitted,1);assert.equal(row.published,1);
+        const adminRow=(await admin.get('users')).users.find(u=>u.admin===true);assert.ok(adminRow);assert.ok('email' in adminRow);
+    });
     console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
 } finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});await rm(figureDir,{recursive:true,force:true});}

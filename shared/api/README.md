@@ -10,6 +10,7 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 | `POST /auth/login`, `/auth/logout` | Website cookie session |
 | `POST /auth/resend`, `/auth/forgot`, `/auth/reset` | Verification resend and password recovery |
 | `GET /problems?scope=published\|mine\|review` | Overview records; review is administrator-only |
+| `GET /users` | Admin-only roster: each account's email, confirmed/admin flags, and submitted/published problem counts |
 | `POST /problems` | Create an empty private draft |
 | `GET /problems/{id}` | Published snapshot only |
 | `GET /problems/{id}?context=edit` | Author/admin draft with current revision |

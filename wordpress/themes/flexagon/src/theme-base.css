@@ -56,3 +56,13 @@
 .figure-card img{width:100%;height:110px;object-fit:contain;background:white}
 .figure-card:hover:not(:disabled){border-color:var(--accent)}
 .figure-card:disabled{opacity:.6;cursor:default}
+
+/* Admin members roster */
+.table-wrap{overflow-x:auto;margin-top:18px;border:1px solid var(--line);border-radius:8px}
+.members-table{width:100%;border-collapse:collapse;font-size:13px;background:white}
+.members-table th,.members-table td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+.members-table thead th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.members-table tbody tr:last-child td{border-bottom:none}
+.members-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.members-email{color:var(--muted);overflow-wrap:anywhere;white-space:normal}
+.badge.warn{background:#f3e6d6;color:#8a5a1a}

@@ -164,3 +164,48 @@ add_filter('pre_wp_mail', function ($return, $args) {
     update_option('_lpdj_local_mail', array_slice($messages, -100), false);
     return true;
 }, 10, 2);
+
+// Administrator roster: every account with its email and how many problems it has
+// put forward for review and how many are published. Per-problem tallies are cached
+// per catalogue version (bumped by every write and by profile/account changes); the
+// account list itself is read fresh so new members appear at once.
+function lpdj_author_stats() {
+    $key = 'lpdj_author_stats_' . md5(get_option('_lpdj_catalogue_version', '0') . '|' . LPDJ_VERSION);
+    $cached = get_transient($key);
+    if (is_array($cached)) return $cached;
+    $submitted = []; $published = [];
+    foreach (get_posts(['post_type' => 'lpdj_problem', 'post_status' => 'private', 'posts_per_page' => -1]) as $post) {
+        $author = (int) $post->post_author;
+        $has_published = (bool) get_post_meta($post->ID, '_lpdj_published', true);
+        $draft = get_post_meta($post->ID, '_lpdj_draft', true);
+        $state = is_array($draft) ? ($draft['state'] ?? '') : '';
+        if ($has_published) $published[$author] = ($published[$author] ?? 0) + 1;
+        // "Submitted" counts anything put forward for review: awaiting, returned,
+        // published, or still published after later draft edits. Pure drafts do not.
+        if ($has_published || in_array($state, ['submitted', 'returned', 'published'], true)) {
+            $submitted[$author] = ($submitted[$author] ?? 0) + 1;
+        }
+    }
+    $stats = ['submitted' => $submitted, 'published' => $published];
+    set_transient($key, $stats, 12 * HOUR_IN_SECONDS);
+    return $stats;
+}
+function lpdj_users_list() {
+    $stats = lpdj_author_stats();
+    $users = [];
+    foreach (get_users(['orderby' => 'display_name', 'order' => 'ASC']) as $user) {
+        $id = (int) $user->ID;
+        $users[] = [
+            'id' => $id,
+            'email' => $user->user_email,
+            'name' => $user->display_name ?: $user->user_login,
+            'admin' => user_can($user, 'manage_options'),
+            'confirmed' => get_user_meta($id, '_lpdj_verification', true) !== 'pending',
+            'submitted' => $stats['submitted'][$id] ?? 0,
+            'published' => $stats['published'][$id] ?? 0,
+        ];
+    }
+    // Most active contributors first, then by name.
+    usort($users, fn($a, $b) => ($b['submitted'] <=> $a['submitted']) ?: strcasecmp($a['name'], $b['name']));
+    return ['users' => array_values($users), 'total' => count($users)];
+}

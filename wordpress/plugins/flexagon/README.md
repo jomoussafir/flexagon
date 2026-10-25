@@ -42,6 +42,10 @@ configure a reliable scheduled runner on the production host if traffic is low.
 
 Deactivating the plugin preserves content. There is no destructive uninstall hook.
 
+Administrators have a Members roster (`GET /users`, the theme's `#/membres` page) listing
+every account's email with the number of problems it submitted for review and the number
+published. Counts are cached per catalogue version; the account list is read fresh.
+
 Original source PDFs are served only to administrators by `lpdj_reference`. Configure
 `LPDJ_REFERENCE_DIR` to a private directory outside the web root with `manifest.json`
 and the matching PDF files. The local launcher mounts the ignored private library.
