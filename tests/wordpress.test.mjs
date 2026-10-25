@@ -69,6 +69,8 @@ try {
     await check('Unconfirmed registrations do not notify the administrator',async()=>assert.equal((await alerts('user')).length,0));
     await check('Unverified users cannot sign in',async()=>assert.equal((await author.request('auth/login',{email:'author@example.test',password},'POST')).status,401));
     await check('Confirmation is single-use, followed by member login',async()=>{await author.post('auth/verify',authorToken);assert.equal((await author.request('auth/verify',authorToken,'POST')).status,400);await author.login('author@example.test');assert.equal(author.session.user.admin,false);});
+    // New accounts default to no-review (direct publishing). The review-workflow tests below need a reviewed member.
+    await php(`update_user_meta(${authorToken.user},'_lpdj_no_review',0);`);
     await check('Account confirmation alerts go once to the administration address without confirmation secrets',async()=>{const mails=await alerts('user');assert.equal(mails.length,1);assert.equal(mails[0].to,'alerts@example.test');assert.match(mails[0].message,/Auteur test/);assert.match(mails[0].message,/author@example.test/);assert.match(mails[0].message,new RegExp('user-edit.php\\?user_id='+authorToken.user));assert.ok(!mails[0].message.includes(authorToken.token));await php(`lpdj_admin_alert('user',${authorToken.user});`);assert.equal((await alerts('user')).length,1);});
     const readerToken=await register(reader,'reader@example.test','Lecteur test');await reader.post('auth/verify',readerToken);await reader.login('reader@example.test');
     await check('Members cannot open admin review or mailbox',async()=>{assert.equal((await author.request('problems?scope=review')).status,403);assert.equal((await author.request('mailbox')).status,404);});
@@ -161,6 +163,7 @@ try {
     });
     await check('Repeated legacy import neither duplicates nor overwrites newer edits',async()=>{imported.versions.en.title='Edited after import';imported=await admin.post('problems/'+imported.id,{...imported,action:'save'});const result=await importLegacy();assert.equal(Object.keys(result.created).length,0);assert.equal(result.skipped['legacy-test'],imported.id);const p=await admin.get('problems/'+imported.id+'?context=edit');assert.equal(p.versions.en.title,'Edited after import');assert.equal(p.hasPublished,false);});
     const multilingual=await new Client().boot();const multilingualToken=await register(multilingual,'languages@example.test','Languages tester');await multilingual.post('auth/verify',multilingualToken);await multilingual.login('languages@example.test');
+    await php(`update_user_meta(${multilingualToken.user},'_lpdj_no_review',0);`);   // review required for the language-approval tests
     let translated=await multilingual.post('problems',{});
     translated.versions={es:{language:'Spanish',title:'Dos números',latex:'Encuentra $x+y=5$.',approved:true},'und-12345678':{language:'Occitan',title:'Dos nombres',latex:'Tròba $x+y=5$.',approved:true}};
     await check('A member can submit named languages without English or French, but cannot approve them',async()=>{translated=await multilingual.post('problems/'+translated.id,{...translated,action:'submit'});assert.equal(translated.state,'submitted');assert.equal(translated.versions.es.language,'Spanish');assert.equal(translated.versions.es.approved,false);assert.equal(translated.versions['und-12345678'].approved,false);assert.equal((await multilingual.request('problems/'+translated.id,{...translated,action:'publish'},'POST')).status,403);});
@@ -233,6 +236,21 @@ try {
         assert.ok(!(await admin.get('users')).users.some(u=>u.email==='victim@example.test'));
         assert.equal(await php(`echo get_post(${vp})?'exists':'gone';`),'gone');
         assert.equal(await php(`echo get_user_by('id',${vid})?'exists':'gone';`),'gone');
+    });
+    await check('No-review members publish their own problems; the flag never auto-publishes existing submissions',async()=>{
+        assert.equal((await admin.get('users')).users.find(u=>u.email==='roster@example.test').noReview,true);   // default on account creation
+        const uid=Number(await php(`$id=wp_insert_user(['user_login'=>'trusted-pub','user_email'=>'trusted@example.test','user_pass'=>'${password}','display_name'=>'Trusted','role'=>'lpdj_member']);update_user_meta($id,'_lpdj_verification','verified');update_user_meta($id,'_lpdj_no_review',0);echo $id;`));
+        const member=await new Client().boot();await member.login('trusted@example.test');
+        let p=await member.post('problems',{});const pid=p.id;p.versions.fr={title:'À publier',latex:'Trouver $x$.',approved:true};
+        p=await member.post('problems/'+pid,{...p,action:'submit'});assert.equal(p.state,'submitted');
+        assert.equal((await member.request('problems/'+pid,{...p,action:'publish'},'POST')).status,403);   // review required: cannot publish
+        assert.equal((await author.request('users/'+uid,{noReview:true},'POST')).status,403);              // toggle is admin-only
+        assert.equal((await admin.request('users/'+uid,{noReview:true},'POST')).status,200);
+        const edit=await admin.get('problems/'+pid+'?context=edit');assert.equal(edit.state,'submitted');assert.equal(edit.hasPublished,false); // toggle did NOT publish the submission
+        p=await member.get('problems/'+pid+'?context=edit');p.versions.fr.approved=true;p=await member.post('problems/'+pid,{...p,action:'publish'});
+        assert.equal(p.state,'published');assert.ok(p.hasPublished);                                       // now the member can publish it
+        assert.equal((await admin.get('users')).users.find(u=>u.email==='trusted@example.test').noReview,true);
+        assert.equal((await member.get('session')).user.canPublish,true);
     });
     console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
 } finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});await rm(figureDir,{recursive:true,force:true});}

@@ -32,6 +32,8 @@ function lpdj_throttle($action, $limit = 10) {
 function lpdj_profile($user) {
     return ['id' => $user->ID, 'pseudo' => $user->display_name, 'email' => $user->user_email,
         'admin' => user_can($user, 'manage_options'), 'notifications' => (bool) get_user_meta($user->ID, '_lpdj_notifications', true),
+        // May publish own problems without administrator review (admins always may).
+        'canPublish' => user_can($user, 'manage_options') || (bool) get_user_meta($user->ID, '_lpdj_no_review', true),
         'avatar' => ($id = get_user_meta($user->ID, '_lpdj_avatar', true)) ? lpdj_asset_url($id) : null];
 }
 function lpdj_session() {
@@ -63,6 +65,7 @@ function lpdj_auth_register($r) {
         'display_name' => $pseudo, 'role' => 'lpdj_member']);
     if (is_wp_error($id)) return lpdj_error('Could not create the account. Please try again.');
     update_user_meta($id, '_lpdj_verification', 'pending');
+    update_user_meta($id, '_lpdj_no_review', 1); // New accounts may publish directly until an administrator requires review.
     update_user_meta($id, '_lpdj_notifications', !empty($r['notifications']));
     update_user_meta($id, '_lpdj_consent', ['version' => 1, 'date' => gmdate('c')]);
     if (!lpdj_send_verification(get_user_by('id', $id))) return lpdj_error('Account created, but the email could not be sent. Use “Resend confirmation”.', 503);
@@ -201,6 +204,7 @@ function lpdj_users_list() {
             'name' => $user->display_name ?: $user->user_login,
             'admin' => user_can($user, 'manage_options'),
             'confirmed' => get_user_meta($id, '_lpdj_verification', true) !== 'pending',
+            'noReview' => (bool) get_user_meta($id, '_lpdj_no_review', true),
             'submitted' => $stats['submitted'][$id] ?? 0,
             'published' => $stats['published'][$id] ?? 0,
         ];
@@ -235,4 +239,16 @@ function lpdj_user_delete($r) {
     wp_delete_user($id, 0);
     lpdj_catalogue_changed();
     return ['ok' => true, 'id' => $id];
+}
+
+// Administrator toggle of a member's "no review" flag from the Members roster. When on,
+// the member may publish their own new problems directly. IMPORTANT: this only changes
+// the member's future publishing; it never publishes problems they already submitted —
+// those stay under review until the member (or an administrator) publishes them.
+function lpdj_user_update($r) {
+    $id = absint($r['id']);
+    $user = get_user_by('id', $id);
+    if (!$user) return lpdj_error('Account not found.', 404);
+    update_user_meta($id, '_lpdj_no_review', !empty($r['noReview']) ? 1 : 0);
+    return ['id' => $id, 'noReview' => (bool) !empty($r['noReview'])];
 }

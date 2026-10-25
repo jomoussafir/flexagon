@@ -49,7 +49,10 @@ A normal member sees **Submit for review** instead of publication controls.
 The **Admin review** page shows submitted problems and their language approval status.
 The **Members** page (admin account menu) lists every account's email with how many
 problems it submitted and how many are published. Accounts with no published problems
-can be deleted from there, after a confirmation.
+can be deleted from there, after a confirmation. The **No review** box lets a member
+publish directly without review (on by default for new accounts); their **Submit a
+problem** button becomes **Publish a problem**. Ticking it never publishes problems the
+member already submitted.
 
 ## Figures from the reference books
 

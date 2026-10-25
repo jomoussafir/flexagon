@@ -11,6 +11,7 @@ Base URL: the site's `rest_url('lpdj/v1/')`, normally `/wp-json/lpdj/v1/`.
 | `POST /auth/resend`, `/auth/forgot`, `/auth/reset` | Verification resend and password recovery |
 | `GET /problems?scope=published\|mine\|review` | Overview records; review is administrator-only |
 | `GET /users` | Admin-only roster: each account's email, confirmed/admin flags, and submitted/published problem counts |
+| `POST /users/{id}` | Admin-only: set a member's `noReview` flag. It only affects the member's future publishing and never publishes existing submissions |
 | `DELETE /users/{id}` | Admin-only: delete a non-admin account that has no published problems; its drafts and submissions are removed |
 | `POST /problems` | Create an empty private draft |
 | `GET /problems/{id}` | Published snapshot only |
@@ -53,8 +54,10 @@ cache that every write route invalidates; `progress` and `editable` are added pe
 `unseen`, `bookmarked` and `attempted` all count as unsolved.
 
 Save requests contain the current revision and action `save`, `submit`, `publish`,
-`return` or `unpublish`. A stale revision receives HTTP 409. Only an administrator may
-approve/publish/return/unpublish. Non-admin edits invalidate affected approvals.
+`return` or `unpublish`. A stale revision receives HTTP 409. Administrators may
+approve/publish/return/unpublish any problem; a member whose account carries the
+`noReview` flag may also publish (and self-approve) their own problems. `return` and
+`unpublish` remain administrator-only. The session user carries `canPublish`. Non-admin edits invalidate affected approvals.
 Only approved languages and their referenced assets enter the published snapshot;
 draft edits never replace it until another explicit publication.
 

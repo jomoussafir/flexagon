@@ -47,7 +47,9 @@ every account's email with the number of problems it submitted for review and th
 published. Counts are cached per catalogue version; the account list is read fresh. From
 it an administrator can delete (`DELETE /users/{id}`, with confirmation) a non-admin
 account that has no published problems; its drafts and submissions go with it, and
-publications are never affected.
+publications are never affected. A per-member "No review" flag (`POST /users/{id}`,
+default on for new accounts) lets a member publish their own problems directly; toggling
+it only affects future publishing and never publishes problems already submitted.
 
 Original source PDFs are served only to administrators by `lpdj_reference`. Configure
 `LPDJ_REFERENCE_DIR` to a private directory outside the web root with `manifest.json`

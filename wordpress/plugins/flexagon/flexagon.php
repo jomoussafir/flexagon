@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.7
+ * Version: 0.2.8
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.7');
+define('LPDJ_VERSION', '0.2.8');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
 // The predecessor's independently hosted review/PDF viewer, now retired: the default
@@ -69,6 +69,7 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)/assets/(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]{0,104})', 'DELETE', 'lpdj_asset_detach');
     lpdj_route('/figures', 'GET', 'lpdj_figures_list', 'lpdj_admin_permission');
     lpdj_route('/users', 'GET', 'lpdj_users_list', 'lpdj_admin_permission');
+    lpdj_route('/users/(?P<id>\d+)', 'POST', 'lpdj_user_update', 'lpdj_admin_permission');
     lpdj_route('/users/(?P<id>\d+)', 'DELETE', 'lpdj_user_delete', 'lpdj_admin_permission');
     lpdj_route('/problems/(?P<id>\d+)/figures', 'POST', 'lpdj_figure_attach', 'lpdj_admin_permission');
     lpdj_route('/mailbox', 'GET', function () { return array_reverse(get_option('_lpdj_local_mail', [])); }, function () {

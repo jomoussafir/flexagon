@@ -6,6 +6,11 @@ function lpdj_problem_post($id) {
     return $post && $post->post_type === 'lpdj_problem' ? $post : null;
 }
 function lpdj_can_edit($post) { return $post && (lpdj_admin() || (int) $post->post_author === get_current_user_id()); }
+// A member with the "no review" flag may publish their own problems without review.
+function lpdj_can_self_publish($post) {
+    return $post && !lpdj_admin() && (int) $post->post_author === get_current_user_id()
+        && (bool) get_user_meta(get_current_user_id(), '_lpdj_no_review', true);
+}
 function lpdj_json_meta($id, $key, $value) { return update_post_meta($id, $key, wp_slash($value)); }
 function lpdj_source_name($source) { return $source === 'Communauté' ? 'Community' : ($source ?: 'Community'); }
 function lpdj_language_name($key, $version) { return $version['language'] ?? (['en'=>'English','fr'=>'French'][$key] ?? strtoupper($key)); }
@@ -95,7 +100,7 @@ function lpdj_problem_create() {
     lpdj_catalogue_changed();
     return lpdj_present(lpdj_draft(get_post($id)), true);
 }
-function lpdj_validate_problem($r, $old) {
+function lpdj_validate_problem($r, $old, $can_approve = false) {
     $category = (string) $r['category']; $difficulty = filter_var($r['difficulty'], FILTER_VALIDATE_INT);
     if (!in_array($category, ['Algebra','Geometry','Number Theory','Combinatorics','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');
     $source = sanitize_text_field((string) $r['source']);
@@ -123,7 +128,7 @@ function lpdj_validate_problem($r, $old) {
         if ($total_size>600000) return lpdj_error('The combined statements must fit within 600 KB.');
         $previous = $old['versions'][$lang] ?? ['title'=>'','latex'=>'','approved'=>false];
         $changed = $metadata_changed || $title !== $previous['title'] || $latex !== $previous['latex'] || $name !== lpdj_language_name($lang, $previous);
-        $approved = lpdj_admin() ? !empty($version['approved']) : (!$changed && !empty($old['versions'][$lang]['approved']));
+        $approved = $can_approve ? !empty($version['approved']) : (!$changed && !empty($old['versions'][$lang]['approved']));
         if ($approved && (!$title || !trim($latex))) return lpdj_error('A verified version needs a title and a statement.');
         $data['versions'][$lang] = ['language'=>$name, 'title' => $title, 'latex' => $latex, 'approved' => $approved];
     }
@@ -156,8 +161,10 @@ function lpdj_problem_save($r) {
         if ((int) $r['revision'] !== (int) $old['revision']) return lpdj_error('This problem was changed elsewhere. Copy your changes, then reload the page.', 409);
         $action = (string) ($r['action'] ?: 'save');
         if (!in_array($action, ['save','submit','publish','return','unpublish'], true)) return lpdj_error('Unknown action.');
-        if (in_array($action, ['publish','return','unpublish'], true) && !lpdj_admin()) return lpdj_error('Only an administrator can publish or return a problem.', 403);
-        $data = lpdj_validate_problem($r, $old); if (is_wp_error($data)) return $data;
+        // Administrators publish/return/unpublish anything; a "no review" member may publish only their own problems.
+        $can_publish = lpdj_admin() || lpdj_can_self_publish($post);
+        if (($action === 'publish' && !$can_publish) || (in_array($action, ['return','unpublish'], true) && !lpdj_admin())) return lpdj_error('Only an administrator can publish or return a problem.', 403);
+        $data = lpdj_validate_problem($r, $old, $can_publish); if (is_wp_error($data)) return $data;
         $complete = false;
         foreach ($data['versions'] as $version) {
             if ($version['title'] && trim($version['latex'])) $complete = true;
