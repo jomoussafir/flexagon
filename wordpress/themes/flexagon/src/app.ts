@@ -209,7 +209,7 @@ async function editor(id:string) {
 }
 function collectEditor() {
     if(!$('#problem-title'))return;
-    const v=problem.versions[editorLanguage];v.title=value('problem-title');v.latex=value('latex');v.language=value('language-name').trim();if(session.user.admin)v.approved=checked('approved');
+    const v=problem.versions[editorLanguage];v.title=value('problem-title');v.latex=value('latex');v.language=value('language-name').trim();if(session.user.admin)v.approved=!!(v.title&&v.latex.trim());
     problem.category=value('edit-category');problem.difficulty=Number(value('edit-difficulty'));if(session.user.admin)problem.source=value('edit-source');problem.keywords=value('keywords').split(',').map((s:string)=>s.trim()).filter(Boolean);if(session.user.admin)problem.reviewNote=value('review-note');
 }
 function showEditor() {
@@ -227,7 +227,7 @@ function showEditor() {
     <datalist id="language-names">${Object.values(knownLanguages).sort().map(name=>`<option value="${esc(name)}">`).join('')}</datalist>
     <div class="editor-title"><label for="language-name">Language name<input id="language-name" list="language-names" value="${esc(languageName(editorLanguage,v))}" maxlength="60" required dir="auto"></label><label for="problem-title">Title<input id="problem-title" value="${esc(v.title)}" maxlength="300" placeholder="Problem title" dir="auto"></label></div>
     <div class="editor-columns"><div class="latex-pane"><label for="latex">LATEX STATEMENT</label><textarea id="latex" dir="auto" spellcheck="false" placeholder="Write your statement here. Use $…$ for formulas.">${esc(v.latex)}</textarea><span class="field-help">Text, formulas and figures. <a href="#/aide" target="_blank">Supported commands ↗</a></span></div><div class="preview-pane"><p class="eyebrow">STATEMENT PREVIEW</p><div id="latex-preview" class="math-content" dir="auto"></div></div></div>
-    ${session.user.admin?`<div class="approval"><label class="check"><input id="approved" type="checkbox" ${v.approved?'checked':''}><span>I have verified this ${esc(languageName(editorLanguage,v))} version and approve it for publication.</span></label><p class="field-help">Only checked versions will be published. Verify each language separately.</p></div>`:''}</section>
+    </section>
     <section class="attachments"><div><h2>Figures</h2><p class="muted">Plain SVG, PNG, JPEG or one-page PDF · Up to 2 MB per file</p><div class="figure-actions"><label class="button secondary small upload-label" for="figure-file">＋ Add figure<input id="figure-file" type="file" accept=".svg,.png,.jpg,.jpeg,.pdf"></label>${session.user.admin?`<button type="button" class="button secondary small" data-action="figure-library" aria-expanded="${library.open}" aria-controls="figure-library">Source figures ${library.open?'▴':'▾'}</button>`:''}</div></div><div class="asset-list">${Object.entries(p.assets).map(([name,a]:any)=>`<div class="asset"><img src="${esc(a.url)}" alt="${esc(name)}"><div><strong>${esc(name)}</strong><button class="text-link" data-insert="${esc(name)}">Insert into statement →</button>${a.pdf?`<a class="text-link" href="${esc(a.pdf)}" target="_blank" rel="noopener">PDF ↗</a>`:''}<button class="text-link danger" data-detach="${esc(name)}">Remove</button></div></div>`).join('')||'<p class="muted">No figures attached.</p>'}</div>${session.user.admin?`<div id="figure-library" class="figure-library" ${library.open?'':'hidden'}></div>`:''}</section>
     ${session.user.admin?`<label class="review-note" for="review-note">Note to author<textarea id="review-note" rows="3" placeholder="Describe any changes needed.">${esc(p.reviewNote||'')}</textarea></label>`:''}
     <div class="save-bar"><span id="save-state">${dirty?'Unsaved changes':'Last saved: '+date(p.updated)}</span><div class="button-row"><button class="button secondary" data-save="save">Save</button>${session.user.admin?'<button class="button" data-save="publish">Save & publish ↗</button><button class="text-link" data-save="return">Return to author</button>':session.user.canPublish?'<button class="button" data-save="publish">Publish ↗</button>':'<button class="button" data-save="submit">Submit for review →</button>'}</div></div>
@@ -254,7 +254,7 @@ async function drawLibrary() {
 function insertFigure(name:string) {
     const text=$('#latex');const label='fig:'+name.replace(/\.[^.]+$/,'');
     text.setRangeText(`\n\n\\begin{figure}\n\\centering\n\\includegraphics[width=0.7\\linewidth]{${name}}\n\\caption{A caption}\n\\label{${label}}\n\\end{figure}\n`,text.selectionStart,text.selectionEnd,'end');
-    problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();text.focus();
+    problem.versions[editorLanguage].approved=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();text.focus();
 }
 // A PDF figure is displayed through a rendered image, so readers never load a PDF engine.
 async function pdfPreview(file:File):Promise<Blob> {
@@ -283,13 +283,13 @@ function preview(){const v={latex:value('latex')};try{$('#latex-preview').innerH
 async function saveProblem(action:string) {
     collectEditor();
     if(action==='unpublish'&&!confirm('Unpublish this problem? The draft will be kept.'))return;
-    // A self-publishing member (no admin approval UI) approves every complete version on publish.
-    if(action==='publish'&&!session.user.admin)for(const v of Object.values(problem.versions) as any)v.approved=!!(v.title&&v.latex&&v.latex.trim());
+    // Publishing approves every complete version automatically; empty versions stay unpublished.
+    if(action==='publish')for(const v of Object.values(problem.versions) as any)v.approved=!!(v.title&&v.latex&&v.latex.trim());
     if(action==='submit'||action==='publish')for(const [lang,v] of Object.entries(problem.versions) as any){if(action==='submit'||v.approved){try{math(v,problem.assets);}catch(error:any){message(`${languageName(lang,v)}: ${error.message}`,true);return;}}}
     const buttons=document.querySelectorAll<HTMLButtonElement>('[data-save]');buttons.forEach(b=>b.disabled=true);
     // Send only the fields the server reads; the legacy block and its source URLs stay in the browser.
     const payload={action,revision:problem.revision,category:problem.category,difficulty:problem.difficulty,source:problem.source,keywords:problem.keywords,reviewNote:problem.reviewNote,versions:problem.versions};
-    try{problem=await api('problems/'+problem.id,payload);dirty=false;showEditor();toast(({save:'Draft saved.',submit:'Submitted for review.',publish:'Verified versions published.',return:'Returned to author.',unpublish:'Problem unpublished.'} as any)[action]);}catch(error:any){message(error.message,true);}finally{buttons.forEach(b=>b.disabled=false);}
+    try{problem=await api('problems/'+problem.id,payload);dirty=false;showEditor();toast(({save:'Draft saved.',submit:'Submitted for review.',publish:'Published.',return:'Returned to author.',unpublish:'Problem unpublished.'} as any)[action]);}catch(error:any){message(error.message,true);}finally{buttons.forEach(b=>b.disabled=false);}
 }
 function profile() {
     if(!session.user){routeTo('/connexion');return;}const u=session.user;avatar=0;
@@ -341,10 +341,10 @@ root.addEventListener('input',(e)=>{
     const target=e.target as HTMLInputElement;
     if(target.id==='progress-search'){progressFilters.search=target.value;progressExpanded=Object.create(null);drawProgress();}
     if(target.id==='search'){filters.search=target.value;drawList();}
-    if($('#latex')&&['latex','problem-title','language-name','edit-category','edit-difficulty','edit-source','keywords','approved','review-note'].includes(target.id)){
+    if($('#latex')&&['latex','problem-title','language-name','edit-category','edit-difficulty','edit-source','keywords','review-note'].includes(target.id)){
         dirty=true;$('#save-state').textContent='Unsaved changes';
-        if(['latex','problem-title','language-name'].includes(target.id)){problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;}
-        if(['edit-category','edit-difficulty','edit-source','keywords'].includes(target.id)){for(const v of Object.values(problem.versions) as any)v.approved=false;if($('#approved'))$('#approved').checked=false;}
+        if(['latex','problem-title','language-name'].includes(target.id)){problem.versions[editorLanguage].approved=false;}
+        if(['edit-category','edit-difficulty','edit-source','keywords'].includes(target.id)){for(const v of Object.values(problem.versions) as any)v.approved=false;}
         if(target.id==='latex')preview();
     }
 });
@@ -355,7 +355,7 @@ root.addEventListener('change',async(e)=>{
     if(['progress-category','progress-difficulty','progress-source'].includes(target.id)){(progressFilters as any)[target.id.slice(9)]=target.value;progressExpanded=Object.create(null);drawProgress();return;}
     if(['category','difficulty','source','progress','status','triage','sort'].includes(target.id)){(filters as any)[target.id]=target.value;drawList();}
     try{
-        if(target.id==='tex-file'&&target.files?.[0]){if(target.files[0].size>60000)throw Error('The .tex file must be under 60 KB.');let text=await target.files[0].text();const body=/\\begin\{document\}([\s\S]*?)\\end\{document\}/.exec(text);if(body)text=body[1].trim();$('#latex').value=text;problem.versions[editorLanguage].approved=false;if($('#approved'))$('#approved').checked=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();}
+        if(target.id==='tex-file'&&target.files?.[0]){if(target.files[0].size>60000)throw Error('The .tex file must be under 60 KB.');let text=await target.files[0].text();const body=/\\begin\{document\}([\s\S]*?)\\end\{document\}/.exec(text);if(body)text=body[1].trim();$('#latex').value=text;problem.versions[editorLanguage].approved=false;dirty=true;$('#save-state').textContent='Unsaved changes';preview();}
         if((target.id==='figure-file'||target.id==='avatar-file')&&target.files?.[0]){
             const file=target.files[0];if(file.size>2*1024*1024)throw Error('Each file must be no larger than 2 MB.');
             const isFigure=target.id==='figure-file';if(isFigure)collectEditor();const data=new FormData();data.append('file',file);data.append('problem',isFigure?String(problem.id):'0');if(isFigure)data.append('revision',String(problem.revision));target.disabled=true;
