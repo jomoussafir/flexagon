@@ -238,6 +238,8 @@ function lpdj_progress_save($r) {
 function lpdj_triage_save($r) {
     if (!lpdj_problem_post($r['id'])) return lpdj_error('Problem not found.', 404);
     if (!in_array($r['triage'], ['unseen','nice','later'], true)) return lpdj_error('Unknown category.');
+    // Published problems are triaged "Published" automatically and cannot be changed.
+    if (get_post_meta(absint($r['id']), '_lpdj_published', true)) return lpdj_error('Published problems are triaged automatically.');
     update_user_meta(get_current_user_id(), '_lpdj_triage_' . absint($r['id']), $r['triage']);
     return ['triage' => $r['triage']];
 }
