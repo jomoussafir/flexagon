@@ -34,6 +34,9 @@ export function render(statement:string,figures:Record<string,string>={}){
   const token=`@@MATH${tokens.length}@@`;tokens.push(match==='\\$'?'$':katex.renderToString(display??paren??dd??inline,{displayMode:display!==undefined||dd!==undefined,throwOnError:true,trust:false,output:'htmlAndMathml',strict:'error',maxExpand:1000,maxSize:20}));return token;
  });
  text=escapeHTML(text).replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g,(_,body)=>'<ul>'+body.split('\\item').slice(1).map((s:string)=>'<li>'+s.trim()+'</li>').join('')+'</ul>');
- text=text.split(/\n\s*\n/).map(s=>'<p>'+s.trim()+'</p>').join('\n').replace(/@@MATH(\d+)@@/g,(_,n)=>tokens[Number(n)]).replace(/<p>@@FIGURE(\d+)@@<\/p>/g,(_,n)=>blocks[Number(n)]);
- if(/\\(?:begin|end|item)/.test(text))throw Error('Unsupported LaTeX environment. Use paragraphs, $…$, \\[ … \\] and itemize lists.');return text;
+ // Reject bare LaTeX environments left in the prose. Checked here, while math is still
+ // tokenised, so KaTeX's own \begin{…} source annotation (array, aligned, cases, …) is
+ // not misread as unsupported: those environments are valid inside $…$ / \[ … \].
+ if(/\\(?:begin|end|item)/.test(text))throw Error('Unsupported LaTeX environment. Use paragraphs, $…$, \\[ … \\] (arrays, aligned, cases and matrices go inside the math) and itemize lists.');
+ return text.split(/\n\s*\n/).map(s=>'<p>'+s.trim()+'</p>').join('\n').replace(/@@MATH(\d+)@@/g,(_,n)=>tokens[Number(n)]).replace(/<p>@@FIGURE(\d+)@@<\/p>/g,(_,n)=>blocks[Number(n)]);
 }

@@ -305,7 +305,7 @@ function help() {shell(`${intro('LaTeX & figures')}<div class="help-grid"><secti
 
 \\[
   a^2 + b^2 = c^2
-\\]</pre><p>Inline formulas: <code>$…$</code> or <code>\\(…\\)</code>. Display formulas: <code>\\[…\\]</code> or <code>$$…$$</code>. Lists using <code>itemize</code> are supported.</p><p>For a price, write <code>\\$ 100</code>.</p></section><section class="panel"><h2>Figures in the statement</h2><p>Upload an image or a one-page PDF, then select “Insert into statement”.</p><pre>See figure~\\ref{fig:example}.
+\\]</pre><p>Inline formulas: <code>$…$</code> or <code>\\(…\\)</code>. Display formulas: <code>\\[…\\]</code> or <code>$$…$$</code>. Lists using <code>itemize</code> are supported.</p><p>Aligned equations, arrays, matrices and cases go <em>inside</em> the math, e.g. <code>\\[\\begin{aligned} … \\end{aligned}\\]</code>. Formulas are rendered with KaTeX; its <a href="https://katex.org/docs/supported" target="_blank" rel="noopener">supported commands and environments</a> apply. Arbitrary packages, custom macros and system commands are not available.</p><p>For a price, write <code>\\$ 100</code>.</p></section><section class="panel"><h2>Figures in the statement</h2><p>Upload an image or a one-page PDF, then select “Insert into statement”.</p><pre>See figure~\\ref{fig:example}.
 
 \\begin{figure}
 \\centering

@@ -26,3 +26,20 @@ test('existing math delimiters and HTML escaping are preserved',()=>{
  assert.equal(render(String.raw`<script> \$5`),'<p>&lt;script&gt; $5</p>');
  assert.throws(()=>render(String.raw`$\unknowncommand$`));
 });
+test('KaTeX environments render inside display and inline math',()=>{
+ for(const formula of [
+  String.raw`\[\begin{aligned} a &= b \\ &= c \end{aligned}\]`,
+  String.raw`\[\begin{align} a &= b \\ c &= d \end{align}\]`,
+  String.raw`\[\begin{array}{cc} a & b \\ c & d \end{array}\]`,
+  String.raw`$$\begin{array}{cc} a & b \\ c & d \end{array}$$`,
+  String.raw`\[ f(x)=\begin{cases} 1 & x>0 \\ 0 & x\le 0 \end{cases} \]`,
+  String.raw`$\begin{pmatrix} a & b \\ c & d \end{pmatrix}$`,
+ ])assert.ok(render(formula).includes('class="katex"'),formula);
+});
+test('bare LaTeX environments outside math are still rejected',()=>{
+ for(const statement of [
+  String.raw`\begin{align} a &= b \\ c &= d \end{align}`,
+  String.raw`\begin{array}{cc} a & b \\ c & d \end{array}`,
+  String.raw`\begin{tabular}{c} x \end{tabular}`,
+ ])assert.throws(()=>render(statement),/Unsupported LaTeX environment/,statement);
+});
