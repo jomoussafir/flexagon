@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.10
+ * Version: 0.2.11
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.10');
+define('LPDJ_VERSION', '0.2.11');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
 // The predecessor's independently hosted review/PDF viewer, now retired: the default
@@ -56,9 +56,11 @@ add_action('rest_api_init', function () {
     lpdj_route('/auth/logout', 'POST', function () { wp_logout(); return ['ok' => true]; });
     lpdj_route('/profile', 'POST', 'lpdj_profile_save');
     lpdj_route('/account', 'DELETE', 'lpdj_account_delete');
-    lpdj_route('/problems', 'GET', 'lpdj_problems_list');
+    // Reading the published catalogue is public; the handlers return only published data to
+    // anonymous callers and still guard the "mine" and "review" scopes and the edit context.
+    lpdj_route('/problems', 'GET', 'lpdj_problems_list', '__return_true');
     lpdj_route('/problems', 'POST', 'lpdj_problem_create');
-    lpdj_route('/problems/(?P<id>\d+)', 'GET', 'lpdj_problem_get');
+    lpdj_route('/problems/(?P<id>\d+)', 'GET', 'lpdj_problem_get', '__return_true');
     lpdj_route('/problems/(?P<id>\d+)', 'POST', 'lpdj_problem_save');
     lpdj_route('/problems/(?P<id>\d+)', 'DELETE', 'lpdj_problem_delete');
     lpdj_route('/problems/(?P<id>\d+)/history', 'GET', 'lpdj_problem_history');

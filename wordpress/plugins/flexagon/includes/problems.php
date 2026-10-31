@@ -63,6 +63,8 @@ function lpdj_overview_rows($scope, $author = 0) {
 function lpdj_problems_list($r) {
     $scope = $r['scope'] ?: 'published';
     if (!in_array($scope, ['published','mine','review'], true)) return lpdj_error('Unknown list.');
+    // "published" is public; the author/review scopes require a signed-in account.
+    if ($scope === 'mine' && !is_user_logged_in()) return lpdj_error('Sign in to view your submissions.', 401);
     if ($scope === 'review' && !lpdj_admin()) return lpdj_error('Administrator access required.', 403);
     $items = []; $counts = []; $published = 0;
     foreach (lpdj_overview_rows($scope, $scope === 'mine' ? get_current_user_id() : 0) as $row) {

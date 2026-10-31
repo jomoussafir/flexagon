@@ -141,10 +141,11 @@ function lpdj_asset_detach($r) {
     } finally { delete_option('_lpdj_lock_' . $post->ID); }
 }
 function lpdj_asset_serve() {
-    if (lpdj_member() !== true) { status_header(401); exit; }
     $asset = get_post(absint($_GET['id'] ?? 0));
     if (!$asset || $asset->post_type !== 'lpdj_asset') { status_header(404); exit; }
-    $allowed = lpdj_admin() || (int) $asset->post_author === get_current_user_id();
+    // A figure is served to its owner and administrators; otherwise only if it belongs to a
+    // published problem, which makes published figures readable by anonymous visitors too.
+    $allowed = lpdj_admin() || (is_user_logged_in() && (int) $asset->post_author === get_current_user_id());
     if (!$allowed && $asset->post_parent) {
         $pub = get_post_meta($asset->post_parent, '_lpdj_published', true);
         foreach (($pub['assets'] ?? []) as $entry) if ((int) $entry['id'] === $asset->ID) $allowed = true;
