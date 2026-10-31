@@ -6,7 +6,7 @@ declare global { interface Window { LPDJ: any } }
 const cfg = window.LPDJ;
 let session = cfg.session;
 const root = document.querySelector('#app')!;
-const categories: Record<string,string> = {Algebra:'Algebra',Analysis:'Analysis',Geometry:'Geometry','Number Theory':'Number Theory',Combinatorics:'Combinatorics',Logic:'Logic'};
+const categories: Record<string,string> = {Algebra:'Algebra',Analysis:'Analysis',Geometry:'Geometry','Number Theory':'Number Theory',Combinatorics:'Combinatorics',Probability:'Probability',Logic:'Logic'};
 const progress: Record<string,string> = {unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved'};
 const progressModes:Record<ProgressFilters['mode'],string>={all:'All',unseen:'Unseen',seen:'Seen',bookmarked:'Bookmarked',attempted:'Attempted',solved:'Solved',unsolved:'Unsolved'};
 const statuses: Record<string,string> = {draft:'Draft',submitted:'Awaiting review',returned:'Changes requested',published:'Published'};
