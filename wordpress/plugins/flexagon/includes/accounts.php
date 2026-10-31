@@ -42,6 +42,7 @@ function lpdj_session() {
         // Administrators can compare these with their own address to confirm the proxy setting.
         'addresses' => lpdj_admin() ? ['client' => lpdj_client_ip(), 'remote' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''), 'forwarded' => (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''), 'trusted' => defined('LPDJ_TRUSTED_PROXY_HEADER') && LPDJ_TRUSTED_PROXY_HEADER] : null,
         'categories' => ['Algebra','Analysis','Geometry','Number Theory','Combinatorics','Probability','Logic'],
+        'kinds' => lpdj_kinds(),
         'sources' => ['Moscow Puzzles','Colossal Book','Animath','Challenging Problems in Geometry and Algebra','Yaglom','Stanford','IMO']];
 }
 add_filter('wp_authenticate_user', function ($user) {

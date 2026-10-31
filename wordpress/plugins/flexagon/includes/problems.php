@@ -13,6 +13,9 @@ function lpdj_can_self_publish($post) {
 }
 function lpdj_json_meta($id, $key, $value) { return update_post_meta($id, $key, wp_slash($value)); }
 function lpdj_source_name($source) { return $source === 'Communauté' ? 'Community' : ($source ?: 'Community'); }
+// The problem's flavour. Problems imported or created before this field default to Puzzle.
+function lpdj_kinds() { return ['Competition', 'Exercise', 'Puzzle']; }
+function lpdj_kind_name($kind) { return in_array($kind, lpdj_kinds(), true) ? $kind : 'Puzzle'; }
 function lpdj_language_name($key, $version) { return $version['language'] ?? (['en'=>'English','fr'=>'French'][$key] ?? strtoupper($key)); }
 function lpdj_draft($post) {
     $data = get_post_meta($post->ID, '_lpdj_draft', true);
@@ -24,6 +27,7 @@ function lpdj_draft($post) {
 }
 function lpdj_present($data, $editor = false, $author = null) {
     $data['source'] = lpdj_source_name($data['source']);
+    $data['kind'] = lpdj_kind_name($data['kind'] ?? '');
     foreach ($data['versions'] as $key => &$version) $version['language'] = lpdj_language_name($key, $version);
     unset($version);
     foreach (($data['assets'] ?? []) as $name => $asset) $data['assets'][$name] = lpdj_asset_present($asset);
@@ -95,7 +99,7 @@ function lpdj_problem_create() {
     if (($t = lpdj_throttle('create', 30)) !== true) return $t;
     $id = wp_insert_post(['post_type' => 'lpdj_problem', 'post_status' => 'private', 'post_title' => 'New problem', 'post_author' => get_current_user_id()], true);
     if (is_wp_error($id)) return lpdj_error('Could not create the problem.', 500);
-    $data = ['id' => $id, 'revision' => 1, 'state' => 'draft', 'category' => 'Algebra', 'difficulty' => 1,
+    $data = ['id' => $id, 'revision' => 1, 'state' => 'draft', 'category' => 'Algebra', 'kind' => 'Puzzle', 'difficulty' => 1,
         'source' => 'Community', 'keywords' => [], 'reviewNote' => '', 'assets' => [],
         'updated' => gmdate('c'), 'versions' => ['en' => ['language'=>'English', 'title' => '', 'latex' => '', 'approved' => false]]];
     lpdj_json_meta($id, '_lpdj_draft', $data);
@@ -105,16 +109,18 @@ function lpdj_problem_create() {
 function lpdj_validate_problem($r, $old, $can_approve = false) {
     $category = (string) $r['category']; $difficulty = filter_var($r['difficulty'], FILTER_VALIDATE_INT);
     if (!in_array($category, ['Algebra','Analysis','Geometry','Number Theory','Combinatorics','Probability','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');
+    $kind = (string) $r['kind'];
+    if (!in_array($kind, lpdj_kinds(), true)) return lpdj_error('Choose a kind.');
     $source = sanitize_text_field((string) $r['source']);
     if (mb_strlen($source) > 160) return lpdj_error('The source is too long.');
     $keywords = array_values(array_unique(array_filter(array_map('sanitize_text_field', (array) $r['keywords']))));
     if (count($keywords) > 15 || strlen(implode(',', $keywords)) > 400) return lpdj_error('Use up to 15 short keywords.');
     $data = $old;
-    $data['category'] = $category; $data['difficulty'] = $difficulty; $data['source'] = $source ?: 'Community'; $data['keywords'] = $keywords;
+    $data['category'] = $category; $data['kind'] = $kind; $data['difficulty'] = $difficulty; $data['source'] = $source ?: 'Community'; $data['keywords'] = $keywords;
     $versions = $r['versions'];
     if (!is_array($versions) || count($versions)<1 || count($versions)>20) return lpdj_error('Use between 1 and 20 language versions.');
     $data['versions'] = []; $languages = []; $total_size = 0;
-    $metadata_changed = $old['category'] !== $category || $old['difficulty'] !== $difficulty || $old['source'] !== $data['source'] || $old['keywords'] !== $keywords;
+    $metadata_changed = $old['category'] !== $category || ($old['kind'] ?? '') !== $kind || $old['difficulty'] !== $difficulty || $old['source'] !== $data['source'] || $old['keywords'] !== $keywords;
     foreach ($versions as $lang => $version) {
         if (!is_string($lang) || !preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/D', $lang) || strlen($lang)>40 || !is_array($version)) return lpdj_error('Invalid language version.');
         foreach (['title','latex','language'] as $field) if (isset($version[$field]) && !is_string($version[$field])) return lpdj_error('Invalid language text.');

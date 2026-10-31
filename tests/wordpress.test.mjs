@@ -75,9 +75,10 @@ try {
     const readerToken=await register(reader,'reader@example.test','Lecteur test');await reader.post('auth/verify',readerToken);await reader.login('reader@example.test');
     await check('Members cannot open admin review or mailbox',async()=>{assert.equal((await author.request('problems?scope=review')).status,403);assert.equal((await author.request('mailbox')).status,404);});
     let draft=await author.post('problems',{});
+    await check('New problems default to the Puzzle kind and reject an unknown kind',async()=>{assert.equal(draft.kind,'Puzzle');assert.equal((await author.request('problems/'+draft.id,{...draft,kind:'Nonsense',action:'save'},'POST')).status,400);});
     draft.versions.fr={title:'Le triangle et le prix',latex:'Un prix de \\$ 100. Trouver $x$ tel que $x^2=4$.',approved:true};
     draft.versions.en={title:'The triangle and the price',latex:'A price of \\$ 100. Find $x$ with $x^2=4$.',approved:true};
-    draft.category='Geometry';draft.difficulty=3;draft.keywords=['triangle','entiers'];draft.source='Communauté';
+    draft.category='Geometry';draft.kind='Competition';draft.difficulty=3;draft.keywords=['triangle','entiers'];draft.source='Communauté';
     await check('LaTeX backslashes survive save and member approval cannot be forged',async()=>{draft=await author.post('problems/'+draft.id,{...draft,action:'save'});assert.match(draft.versions.fr.latex,/\\\$/);assert.equal(draft.versions.fr.approved,false);});
     await check('Drafts are private even to another signed-in member',async()=>{assert.equal((await reader.request('problems/'+draft.id+'?context=edit')).status,403);assert.equal((await reader.request('problems/'+draft.id)).status,404);assert.equal((await reader.get('problems')).total,0);});
     await check('Drafts are invisible to anonymous visitors',async()=>{assert.equal((await anon.request('problems/'+draft.id)).status,404);assert.equal((await anon.request('problems/'+draft.id+'?context=edit')).status,403);assert.equal((await anon.get('problems')).total,0);});
@@ -120,7 +121,7 @@ try {
     await check('Admin must approve a language before publication',async()=>assert.equal((await admin.request('problems/'+draft.id,{...draft,action:'publish'},'POST')).status,400));
     await check('First Save & Publish preserves the selected FR verification',async()=>{draft.versions.fr.approved=true;draft=await admin.post('problems/'+draft.id,{...draft,action:'publish'});assert.equal(draft.versions.fr.approved,true);assert.equal(draft.hasPublished,true);});
     let publicProblem;
-    await check('Only the approved language reaches readers',async()=>{publicProblem=await reader.get('problems/'+draft.id);assert.deepEqual(Object.keys(publicProblem.versions),['fr']);assert.ok(!('reviewNote' in publicProblem));assert.equal((await reader.get('problems')).sources['Community'],1);});
+    await check('Only the approved language reaches readers',async()=>{publicProblem=await reader.get('problems/'+draft.id);assert.deepEqual(Object.keys(publicProblem.versions),['fr']);assert.equal(publicProblem.kind,'Competition');assert.ok(!('reviewNote' in publicProblem));assert.equal((await reader.get('problems')).sources['Community'],1);});
     await check('Published figures are readable by anyone, including anonymous visitors',async()=>{assert.equal((await reader.request(figure.asset.url)).status,200);assert.equal((await anon.request(figure.asset.url)).status,200);});
     await check('Anonymous visitors can read a published problem and see it listed',async()=>{assert.equal((await anon.get('problems')).total,1);const view=await anon.get('problems/'+draft.id);assert.deepEqual(Object.keys(view.versions),['fr']);assert.ok(!('reviewNote' in view));assert.equal(view.editable,false);});
     await check('Publishing EN enables both language versions',async()=>{draft.versions.en.approved=true;draft=await admin.post('problems/'+draft.id,{...draft,action:'publish'});assert.deepEqual(Object.keys((await reader.get('problems/'+draft.id)).versions).sort(),['en','fr']);});
