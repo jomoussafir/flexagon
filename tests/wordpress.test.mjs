@@ -75,7 +75,7 @@ try {
     const readerToken=await register(reader,'reader@example.test','Lecteur test');await reader.post('auth/verify',readerToken);await reader.login('reader@example.test');
     await check('Members cannot open admin review or mailbox',async()=>{assert.equal((await author.request('problems?scope=review')).status,403);assert.equal((await author.request('mailbox')).status,404);});
     let draft=await author.post('problems',{});
-    await check('New problems default to the Puzzle kind and reject an unknown kind',async()=>{assert.equal(draft.kind,'Puzzle');assert.equal((await author.request('problems/'+draft.id,{...draft,kind:'Nonsense',action:'save'},'POST')).status,400);});
+    await check('New problems default to the Puzzle kind, a missing kind stays Puzzle, and an unknown kind is rejected',async()=>{assert.equal(draft.kind,'Puzzle');assert.equal((await author.request('problems/'+draft.id,{...draft,kind:'Nonsense',action:'save'},'POST')).status,400);draft=await author.post('problems/'+draft.id,{...draft,kind:'',action:'save'});assert.equal(draft.kind,'Puzzle');});
     draft.versions.fr={title:'Le triangle et le prix',latex:'Un prix de \\$ 100. Trouver $x$ tel que $x^2=4$.',approved:true};
     draft.versions.en={title:'The triangle and the price',latex:'A price of \\$ 100. Find $x$ with $x^2=4$.',approved:true};
     draft.category='Geometry';draft.kind='Competition';draft.difficulty=3;draft.keywords=['triangle','entiers'];draft.source='Communauté';
