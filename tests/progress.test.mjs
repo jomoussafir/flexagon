@@ -21,12 +21,12 @@ test('Unsolved includes unseen, bookmarked and attempted; All includes every ite
     assert.deepEqual(view({mode:'unsolved'}).groups.flatMap(g=>g.items.map(p=>p.id)).sort(),[2,3,4]);
     assert.equal(view({mode:'all'}).groups.flatMap(g=>g.items).length,5);
 });
-test('Grouping supports numeric difficulty and the configured source order',()=>{
-    assert.deepEqual(view({mode:'all',groupBy:'difficulty'}).groups.map(g=>g.key),['1','2','3','5']);
+test('Grouping buckets difficulty into bands and respects the configured source order',()=>{
+    assert.deepEqual(view({mode:'all',groupBy:'difficulty'}).groups.map(g=>g.key),['very-easy','easy','medium','very-hard']);
     assert.deepEqual(view({mode:'all',groupBy:'source'}).groups.map(g=>g.key),['Moscow Puzzles','IMO','Community']);
 });
 test('Filters combine and search covers translated titles and keywords',()=>{
-    assert.equal(view({mode:'all',category:'Geometry',difficulty:'5',source:'IMO',search:'CUADRADOS'}).total,1);
+    assert.equal(view({mode:'all',category:'Geometry',difficulty:'very-hard',source:'IMO',search:'CUADRADOS'}).total,1);
     assert.equal(view({search:'truth'}).solved,1);
     assert.equal(view({mode:'all',category:'Logic',source:'IMO'}).total,0);
 });
@@ -45,7 +45,7 @@ test('Every progress status filters independently, while Unsolved combines unfin
     }
 });
 test('Status combines with category, difficulty, source and search, including empty results',()=>{
-    const matching=view({mode:'bookmarked',category:'Geometry',difficulty:'5',source:'IMO',search:'cuadrados'});
+    const matching=view({mode:'bookmarked',category:'Geometry',difficulty:'very-hard',source:'IMO',search:'cuadrados'});
     assert.equal(matching.shown,1);assert.equal(matching.groups[0].items[0].id,2);
     const empty=view({mode:'attempted',category:'Logic'});
     assert.equal(empty.shown,0);assert.deepEqual(empty.groups,[]);assert.equal(empty.total,3);
