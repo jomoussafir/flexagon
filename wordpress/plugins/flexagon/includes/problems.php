@@ -106,6 +106,32 @@ function lpdj_problem_create() {
     lpdj_catalogue_changed();
     return lpdj_present(lpdj_draft(get_post($id)), true);
 }
+// Admin group edit: update only the catalogue facets (category, kind, difficulty, keywords)
+// of a published problem, leaving its statements, source and review state untouched.
+function lpdj_problem_facets($r) {
+    $post = lpdj_problem_post($r['id']);
+    if (!$post) return lpdj_error('Problem not found.', 404);
+    $id = $post->ID;
+    if (!get_post_meta($id, '_lpdj_published', true)) return lpdj_error('Only published problems can be edited here.');
+    if (!lpdj_lock($id)) return lpdj_error('A save is in progress. Please try again.', 409);
+    try {
+        $category = (string) $r['category']; $difficulty = filter_var($r['difficulty'], FILTER_VALIDATE_INT);
+        if (!in_array($category, ['Algebra','Analysis','Geometry','Number Theory','Combinatorics','Probability','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');
+        $kind = (string) $r['kind']; if ($kind === '') $kind = 'Puzzle';
+        if (!in_array($kind, lpdj_kinds(), true)) return lpdj_error('Choose a kind.');
+        $keywords = array_values(array_unique(array_filter(array_map('sanitize_text_field', (array) $r['keywords']))));
+        if (count($keywords) > 15 || strlen(implode(',', $keywords)) > 400) return lpdj_error('Use up to 15 short keywords.');
+        // Apply to the published snapshot (what readers see) and the draft (what the editor shows).
+        foreach (['_lpdj_published', '_lpdj_draft'] as $key) {
+            $data = get_post_meta($id, $key, true); if (!is_array($data)) continue;
+            $data['category'] = $category; $data['kind'] = $kind; $data['difficulty'] = $difficulty; $data['keywords'] = $keywords;
+            if ($key === '_lpdj_draft') { $data['revision'] = (int) $data['revision'] + 1; $data['updated'] = gmdate('c'); }
+            lpdj_json_meta($id, $key, $data);
+        }
+        lpdj_catalogue_changed();
+        return ['id' => $id, 'category' => $category, 'kind' => $kind, 'difficulty' => $difficulty, 'keywords' => $keywords];
+    } finally { delete_option('_lpdj_lock_' . $id); }
+}
 function lpdj_validate_problem($r, $old, $can_approve = false) {
     $category = (string) $r['category']; $difficulty = filter_var($r['difficulty'], FILTER_VALIDATE_INT);
     if (!in_array($category, ['Algebra','Analysis','Geometry','Number Theory','Combinatorics','Probability','Logic'], true) || $difficulty < 1 || $difficulty > 5) return lpdj_error('Choose a category and a difficulty from 1 to 5.');

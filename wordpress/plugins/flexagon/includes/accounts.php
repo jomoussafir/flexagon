@@ -34,7 +34,9 @@ function lpdj_profile($user) {
         'admin' => user_can($user, 'manage_options'), 'notifications' => (bool) get_user_meta($user->ID, '_lpdj_notifications', true),
         // May publish own problems without administrator review (admins always may).
         'canPublish' => user_can($user, 'manage_options') || (bool) get_user_meta($user->ID, '_lpdj_no_review', true),
-        'avatar' => ($id = get_user_meta($user->ID, '_lpdj_avatar', true)) ? lpdj_asset_url($id) : null];
+        'avatar' => ($id = get_user_meta($user->ID, '_lpdj_avatar', true)) ? lpdj_asset_url($id) : null,
+        // Appearance: '' follows the visitor's system, 'clear' forces light, 'dark' forces dark.
+        'theme' => (string) get_user_meta($user->ID, '_lpdj_theme', true)];
 }
 function lpdj_session() {
     return ['user' => lpdj_member() === true ? lpdj_profile(wp_get_current_user()) : null,
@@ -124,9 +126,11 @@ function lpdj_profile_save($r) {
         $avatar = absint($r['avatar']); $post = get_post($avatar);
         if ($avatar && (!$post || $post->post_type !== 'lpdj_asset' || (int) $post->post_author !== $id || (int) $post->post_parent !== 0)) return lpdj_error('Invalid profile image.');
     }
+    if ($r->has_param('theme') && !in_array((string) $r['theme'], ['', 'clear', 'dark'], true)) return lpdj_error('Unknown appearance.');
     wp_update_user(['ID' => $id, 'display_name' => $pseudo]);
     update_user_meta($id, '_lpdj_notifications', !empty($r['notifications']));
     if ($r->has_param('avatar')) update_user_meta($id, '_lpdj_avatar', $avatar);
+    if ($r->has_param('theme')) update_user_meta($id, '_lpdj_theme', (string) $r['theme']);
     return lpdj_profile(get_user_by('id', $id));
 }
 function lpdj_account_delete($r) {

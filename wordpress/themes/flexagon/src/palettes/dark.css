@@ -1,0 +1,62 @@
+/* Dark theme — applied when the member chooses Dark, or chooses System while their OS is
+   in dark mode (the choice lives in the profile; the app sets data-theme on <html>).
+   It redefines the palette tokens for a dark ground and overrides the light literal
+   surfaces in theme-base and the active palette that are not token-driven. The difficulty
+   bands and progress tiles stay light (dark ink on a coloured chip) so the green→red
+   difficulty ramp keeps its meaning; their text colour is pinned dark here. */
+:root[data-theme="dark"] {
+  --paper:#15171c; --white:#1e2128; --ink:#e8e5db; --muted:#9f9aa8; --line:#343842;
+  --accent:#5b86df; --accent-dark:#9ab3f0; --soft:#242a3a;
+  --ochre:#d8b25c; --ochre-ink:#e6c77a; --header:#0f1117; --earth:#d98a6a; --green:#6fb08c;
+}
+/* The masthead text is tied to --white (near-white on the dark header in light mode);
+   in dark mode --white is a dark card colour, so the nav links and username need a light ink. */
+:root[data-theme="dark"] .masthead { color:var(--ink); }
+:root[data-theme="dark"] .local-banner { color:#c9c4d2; background:#0c0e13; }
+:root[data-theme="dark"] .filters,
+:root[data-theme="dark"] .editor-toolbar { background:#1b1e26; border-color:var(--line); }
+:root[data-theme="dark"] .problem-row:hover,
+:root[data-theme="dark"] .segmented button:hover { background:#20242e; color:var(--ink); }
+:root[data-theme="dark"] input:not([type=checkbox]):not([type=file]),
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea { background-color:#1b1e26; border-color:var(--line); }
+:root[data-theme="dark"] input:disabled { background:#14161b; color:#6f6b7a; }
+:root[data-theme="dark"] .status { color:#b7b4c2; background:#2a2d36; border-color:transparent; }
+:root[data-theme="dark"] .status.submitted,
+:root[data-theme="dark"] .status.bookmarked { color:#e7c98a; background:#352c16; border-color:transparent; }
+:root[data-theme="dark"] .status.published,
+:root[data-theme="dark"] .status.solved { color:#9ad6b4; background:#1d382c; border-color:transparent; }
+:root[data-theme="dark"] .status.returned { color:#f0a98f; background:#3a241b; border-color:transparent; }
+:root[data-theme="dark"] .status.seen,
+:root[data-theme="dark"] .status.attempted { color:#a8c4ef; background:#1f2e4a; border-color:transparent; }
+:root[data-theme="dark"] .badge { color:var(--accent-dark); background:var(--soft); border-color:#3a4260; }
+:root[data-theme="dark"] .source-counts button { background:#1b1e26; border-color:var(--line); color:var(--ink); }
+:root[data-theme="dark"] .source-counts button:nth-child(4n+1),
+:root[data-theme="dark"] .source-counts button:nth-child(4n+2),
+:root[data-theme="dark"] .source-counts button:nth-child(4n+3),
+:root[data-theme="dark"] .source-counts button:nth-child(4n) { background:#1b1e26; }
+:root[data-theme="dark"] .button:hover { background:#3d63c0; }
+:root[data-theme="dark"] .button.secondary:hover,
+:root[data-theme="dark"] .header .button:hover { background:#2a3042; color:var(--ink); }
+:root[data-theme="dark"] .header .button { color:#231c0d; }
+:root[data-theme="dark"] .row-arrow { color:#8a8698; }
+:root[data-theme="dark"] progress::-webkit-progress-bar { background:#2a2d36; }
+:root[data-theme="dark"] .problem-tile,
+:root[data-theme="dark"] .problem-tile:hover { color:#241f10; }
+:root[data-theme="dark"] .latex-pane { background:#16181f; }
+:root[data-theme="dark"] pre { background:#16181f; border-color:var(--line); }
+:root[data-theme="dark"] code { background:#262b3d; }
+:root[data-theme="dark"] .approval { background:#1d382c; border-color:#2f5a46; }
+:root[data-theme="dark"] .notice.soft { background:var(--soft); border-color:#3a4260; color:var(--accent-dark); }
+:root[data-theme="dark"] .notice.success { background:#1d382c; border-color:#2f5a46; color:#9ad6b4; }
+:root[data-theme="dark"] .notice.error { background:#3a241b; border-color:#6a3a2a; color:#f0a98f; }
+:root[data-theme="dark"] .danger { color:#f0a98f; }
+:root[data-theme="dark"] .button.danger { background:#341e16; border-color:#7a4030; color:#f0a98f; }
+:root[data-theme="dark"] .reference-sheet { background:#1b1e26; border-color:var(--line); }
+:root[data-theme="dark"] .empty-symbol,
+:root[data-theme="dark"] .avatar-editor>span,
+:root[data-theme="dark"] .profile-link>span:first-child { color:#231c0d; }
+:root[data-theme="dark"] #toast { background:#0c0e13; color:var(--ink); }
+:root[data-theme="dark"] .switch-track { background:#3a3d47; }
+:root[data-theme="dark"] .group-edit-table tr.row-saved td { background:#1d382c; }
+:root[data-theme="dark"] .group-edit-table tr.row-error td { background:#3a241b; }

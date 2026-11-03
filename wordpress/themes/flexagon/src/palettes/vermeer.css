@@ -22,21 +22,21 @@
   --level-3: #a5b6f0;
   --level-4: #b398e2;
   --level-5: #7042b3;
-  --band-very-easy: #b9dd92;
-  --band-very-easy-ink: #39570f;
-  --band-easy: #d7e38a;
-  --band-easy-ink: #566010;
-  --band-medium: #f6d884;
-  --band-medium-ink: #8a5e08;
-  --band-hard: #f3b98a;
-  --band-hard-ink: #994712;
-  --band-very-hard: #ee9f8a;
-  --band-very-hard-ink: #a5301c;
-  --tile-very-easy: #d2ebb2;
-  --tile-easy: #e6edab;
-  --tile-medium: #f9e3a2;
-  --tile-hard: #f7cfa8;
-  --tile-very-hard: #f4b6a2;
+  --band-very-easy: #a9d47f;
+  --band-very-easy-ink: #2c470a;
+  --band-easy: #cfe06a;
+  --band-easy-ink: #44520a;
+  --band-medium: #f3cf5e;
+  --band-medium-ink: #6e4a06;
+  --band-hard: #f0a85f;
+  --band-hard-ink: #7e3608;
+  --band-very-hard: #e9826a;
+  --band-very-hard-ink: #861f0f;
+  --tile-very-easy: #c3e49a;
+  --tile-easy: #ddea8a;
+  --tile-medium: #f6dd86;
+  --tile-hard: #f4c38e;
+  --tile-very-hard: #f0a58c;
 }
 
 body { background: var(--paper); }

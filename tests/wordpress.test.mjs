@@ -255,5 +255,30 @@ try {
         assert.equal((await admin.get('users')).users.find(u=>u.email==='trusted@example.test').noReview,true);
         assert.equal((await member.get('session')).user.canPublish,true);
     });
+    await check('Group edit updates published facets; members and guests are refused',async()=>{
+        let gp=await admin.post('problems',{});gp.versions.en={title:'Facet subject',latex:'Compute $2+2$.',approved:true};
+        gp=await admin.post('problems/'+gp.id,{...gp,category:'Algebra',kind:'Puzzle',difficulty:2,keywords:['old'],action:'publish'});
+        const body={category:'Geometry',kind:'Exercise',difficulty:4,keywords:['alpha','beta','alpha']};
+        assert.equal((await anon.request('problems/'+gp.id+'/facets',body,'POST')).status,403);
+        assert.equal((await multilingual.request('problems/'+gp.id+'/facets',body,'POST')).status,403);
+        const res=await admin.post('problems/'+gp.id+'/facets',body);
+        assert.equal(res.category,'Geometry');assert.equal(res.kind,'Exercise');assert.equal(res.difficulty,4);assert.deepEqual(res.keywords,['alpha','beta']);
+        const pub=await anon.get('problems/'+gp.id);assert.equal(pub.category,'Geometry');assert.equal(pub.kind,'Exercise');assert.equal(pub.difficulty,4);assert.deepEqual(pub.keywords,['alpha','beta']);
+        const edit=await admin.get('problems/'+gp.id+'?context=edit');assert.equal(edit.category,'Geometry');assert.equal(edit.difficulty,4);assert.deepEqual(edit.keywords,['alpha','beta']);
+        assert.equal((await admin.request('problems/'+gp.id+'/facets',{...body,category:'Nope'},'POST')).status,400);
+        assert.equal((await admin.request('problems/'+gp.id+'/facets',{...body,difficulty:9},'POST')).status,400);
+        const unp=await admin.post('problems',{});assert.equal((await admin.request('problems/'+unp.id+'/facets',body,'POST')).status,400);
+        const cur=await admin.get('problems/'+gp.id+'?context=edit');await admin.post('problems/'+gp.id,{...cur,action:'unpublish'});
+        await admin.request('problems/'+gp.id,{},'DELETE');await admin.request('problems/'+unp.id,{},'DELETE');
+    });
+    await check('The appearance preference is stored on the profile and validated',async()=>{
+        const member=await new Client().boot();await member.login('trusted@example.test');
+        assert.equal((await member.get('session')).user.theme,'');
+        assert.equal((await member.post('profile',{pseudo:'Trusted',notifications:false,theme:'dark'})).theme,'dark');
+        assert.equal((await member.get('session')).user.theme,'dark');
+        assert.equal((await member.request('profile',{pseudo:'Trusted',notifications:false,theme:'neon'},'POST')).status,400);
+        assert.equal((await member.post('profile',{pseudo:'Trusted',notifications:false,theme:'clear'})).theme,'clear');
+        assert.equal((await member.post('profile',{pseudo:'Trusted',notifications:false,theme:''})).theme,'');
+    });
     console.log(`\n${passed} WordPress integration checks passed. Test database is isolated from your local preview.`);
 } finally {await server[Symbol.asyncDispose]();await rm(referenceDir,{recursive:true,force:true});await rm(figureDir,{recursive:true,force:true});}

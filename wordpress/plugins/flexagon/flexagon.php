@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Flexagon
  * Description: Member accounts, LaTeX submissions and reviewed publication.
- * Version: 0.2.16
+ * Version: 0.2.17
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * License: GPL-2.0-or-later
  */
 defined('ABSPATH') || exit;
-define('LPDJ_VERSION', '0.2.16');
+define('LPDJ_VERSION', '0.2.17');
 $private_config = WP_CONTENT_DIR . '/lpdj-private-storage.php';
 if (is_readable($private_config)) require_once $private_config;
 // The predecessor's independently hosted review/PDF viewer, now retired: the default
@@ -66,6 +66,7 @@ add_action('rest_api_init', function () {
     lpdj_route('/problems/(?P<id>\d+)/history', 'GET', 'lpdj_problem_history');
     lpdj_route('/problems/(?P<id>\d+)/progress', 'POST', 'lpdj_progress_save');
     lpdj_route('/problems/(?P<id>\d+)/triage', 'POST', 'lpdj_triage_save', 'lpdj_admin_permission');
+    lpdj_route('/problems/(?P<id>\d+)/facets', 'POST', 'lpdj_problem_facets', 'lpdj_admin_permission');
     lpdj_route('/problems/(?P<id>\d+)/reference', 'GET', 'lpdj_problem_reference', 'lpdj_admin_permission');
     lpdj_route('/assets', 'POST', 'lpdj_asset_upload');
     lpdj_route('/problems/(?P<id>\d+)/assets/(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]{0,104})', 'DELETE', 'lpdj_asset_detach');
