@@ -54,6 +54,13 @@
 :root[data-theme="dark"] .danger { color:#ff9478!important; }
 :root[data-theme="dark"] .button.danger { background:#341e16; border-color:#7a4030; color:#ff9478; }
 :root[data-theme="dark"] .reference-sheet { background:#1b1e26; border-color:var(--line); }
+/* Keyword chips on the problem page, the skip link, and figure-library cards use a light
+   literal surface in theme-base and inherit --ink, which is near-white in dark mode — so
+   they need a dark surface here to stay legible. (The figure thumbnail image keeps its white
+   backing so black line-art figures still read.) */
+:root[data-theme="dark"] .tags span { background:#262b3d; color:var(--ink); }
+:root[data-theme="dark"] .skip-link { background:var(--white); color:var(--ink); }
+:root[data-theme="dark"] .figure-card { background:var(--white); }
 :root[data-theme="dark"] .empty-symbol,
 :root[data-theme="dark"] .avatar-editor>span,
 :root[data-theme="dark"] .profile-link>span:first-child { color:#231c0d; }
